@@ -1,0 +1,34 @@
+```prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL") // Asegúrate de que esta variable esté configurada en .env
+}
+
+model Product {
+  id          String   @id
+  nombre      String
+  descripcion String
+  precio      Float
+  stock       Int
+  categoryId  String
+  categoria   String
+  imagen      String
+  tallas      String[] // Postgres array
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime?
+}
+
+model Usuario {
+  id        String   @id @default(cuid())
+  nombre    String
+  email     String   @unique
+  password  String
+  role      String   @default("cliente") // 'admin' o 'cliente'
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+```

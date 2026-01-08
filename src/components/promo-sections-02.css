@@ -1,0 +1,58 @@
+/* Styles for promo-sections-02 */
+
+section {
+  padding: 2.5rem 0;
+}
+
+header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+header h3 {
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+
+header p {
+  color: #6b7280; /* Tailwind's text-muted-foreground */
+  font-size: 1.125rem;
+}
+
+header button {
+  margin-top: 1.5rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  overflow: hidden;
+}
+
+.grid img {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  border-radius: 0.5rem;
+}
+
+.mask-t-from-80% {
+  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1) 80%, rgba(0, 0, 0, 0));
+}
+
+.mask-r-from-10% {
+  mask-image: linear-gradient(to right, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 1));
+}
+
+.mask-b-from-80% {
+  mask-image: linear-gradient(to top, rgba(0, 0, 0, 1) 80%, rgba(0, 0, 0, 0));
+}
+
+.mask-l-from-10% {
+  mask-image: linear-gradient(to left, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 1));
+}

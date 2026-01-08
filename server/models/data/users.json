@@ -1,0 +1,16 @@
+[
+  {
+    "id": 1,
+    "nombre": "Administrador",
+    "email": "admin@jerseyclub.ec",
+    "password": "Admin123",
+    "rol": "admin"
+  },
+  {
+    "id": 2,
+    "nombre": "Test User",
+    "email": "testuser@test.com",
+    "password": "Test1234",
+    "rol": "user"
+  }
+]

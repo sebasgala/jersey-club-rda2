@@ -1,0 +1,80 @@
+[
+  {
+    "id": 1,
+    "nombre": "Camiseta Barcelona Local 24/25",
+    "precio": 89.99,
+    "categoria": "futbol",
+    "marca": "Nike",
+    "tallas": ["S", "M", "L", "XL"],
+    "colores": ["Azulgrana"],
+    "imagen": "/assets/images/barcelona-home.webp",
+    "descripcion": "Camiseta oficial del FC Barcelona temporada 2024/2025",
+    "stock": 50,
+    "destacado": true
+  },
+  {
+    "id": 2,
+    "nombre": "Camiseta Real Madrid Local 24/25",
+    "precio": 89.99,
+    "categoria": "futbol",
+    "marca": "Adidas",
+    "tallas": ["S", "M", "L", "XL"],
+    "colores": ["Blanco"],
+    "imagen": "/assets/images/real-madrid-home.webp",
+    "descripcion": "Camiseta oficial del Real Madrid temporada 2024/2025",
+    "stock": 45,
+    "destacado": true
+  },
+  {
+    "id": 3,
+    "nombre": "Camiseta Ecuador Local 24/25",
+    "precio": 79.99,
+    "categoria": "futbol",
+    "marca": "Marathon",
+    "tallas": ["S", "M", "L", "XL", "XXL"],
+    "colores": ["Amarillo"],
+    "imagen": "/assets/images/ecuador-home.webp",
+    "descripcion": "Camiseta oficial de la Selección de Ecuador",
+    "stock": 60,
+    "destacado": true
+  },
+  {
+    "id": 4,
+    "nombre": "Camiseta LDU Quito Local 24/25",
+    "precio": 69.99,
+    "categoria": "futbol",
+    "marca": "Umbro",
+    "tallas": ["S", "M", "L", "XL"],
+    "colores": ["Blanco"],
+    "imagen": "/assets/images/ldu-home.webp",
+    "descripcion": "Camiseta oficial de Liga Deportiva Universitaria de Quito",
+    "stock": 40,
+    "destacado": false
+  },
+  {
+    "id": 5,
+    "nombre": "Camiseta Ferrari F1 2024",
+    "precio": 119.99,
+    "categoria": "formula1",
+    "marca": "Puma",
+    "tallas": ["S", "M", "L", "XL"],
+    "colores": ["Rojo"],
+    "imagen": "/assets/images/ferrari-f1.webp",
+    "descripcion": "Camiseta oficial del equipo Scuderia Ferrari F1",
+    "stock": 25,
+    "destacado": true
+  },
+  {
+    "id": 6,
+    "nombre": "Camiseta Red Bull Racing 2024",
+    "precio": 109.99,
+    "categoria": "formula1",
+    "marca": "Puma",
+    "tallas": ["S", "M", "L", "XL"],
+    "colores": ["Azul"],
+    "imagen": "/assets/images/redbull-f1.webp",
+    "descripcion": "Camiseta oficial del equipo Red Bull Racing F1",
+    "stock": 30,
+    "destacado": true
+  }
+]

@@ -1,0 +1,31 @@
+[
+  {
+    "id": 1767583713688,
+    "cantidad": 2,
+    "productoId": 1
+  },
+  {
+    "id": 1767764044138,
+    "proveedor": "lol",
+    "productos": [
+      {
+        "id": 2,
+        "nombre": "Camiseta Real Madrid Local 24/25",
+        "cantidad": 1,
+        "precioCompra": 89.99
+      },
+      {
+        "id": 4,
+        "nombre": "Camiseta LDU Quito Local 24/25",
+        "cantidad": 1,
+        "precioCompra": 69.99
+      }
+    ],
+    "total": 159.98,
+    "estado": "pendiente",
+    "fechaEntrega": "",
+    "notas": "",
+    "tipo": "compra",
+    "fecha": "2026-01-07T05:34:03.824Z"
+  }
+]

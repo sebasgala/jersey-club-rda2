@@ -1,0 +1,86 @@
+[
+  {
+    "id": "P37281",
+    "orderNumber": "JC-1767860048678-28ZS1",
+    "userId": 2,
+    "status": "pending",
+    "items": [
+      {
+        "id": "ac-milan-2006-local-retro",
+        "title": "Ac Milan 2006 Local Retro",
+        "price": "$45.00",
+        "image": "/assets/images/ac-milan-2006-local-retro.webp",
+        "quantity": 1,
+        "selectedSize": "M",
+        "isOnSale": true,
+        "originalPrice": "$58.50",
+        "category": "futbol",
+        "addedAt": 1767859388836
+      }
+    ],
+    "total": {
+      "subtotal": "45.00",
+      "shipping": "5.00",
+      "taxes": "6.75",
+      "total": "56.75",
+      "freeShipping": false,
+      "freeShippingThreshold": 50
+    },
+    "shippingData": {
+      "fullName": "Melany Freire",
+      "email": "melany.freire@jerseyclub.ec",
+      "phone": "+539 997941179",
+      "country": "Ecuador",
+      "city": "Quito",
+      "address": "dammer 2",
+      "postalCode": "54561"
+    },
+    "paymentMethod": {
+      "type": "card",
+      "last4": "4654"
+    },
+    "createdAt": "2026-01-08T08:14:08.678Z"
+  },
+  {
+    "id": "P77050",
+    "orderNumber": "JC-1767860187437-GKRMN",
+    "userId": 2,
+    "status": "pending",
+    "items": [
+      {
+        "id": "ac-milan-2006-local-retro",
+        "title": "Ac Milan 2006 Local Retro",
+        "price": "$45.00",
+        "image": "/assets/images/ac-milan-2006-local-retro.webp",
+        "quantity": 1,
+        "selectedSize": "M",
+        "isOnSale": true,
+        "originalPrice": "$58.50",
+        "category": "futbol",
+        "addedAt": 1767859388836
+      }
+    ],
+    "total": {
+      "subtotal": "45.00",
+      "shipping": "5.00",
+      "taxes": "6.75",
+      "total": "56.75",
+      "freeShipping": false,
+      "freeShippingThreshold": 50
+    },
+    "shippingData": {
+      "fullName": "Melany Freire",
+      "email": "melany.freire@jerseyclub.ec",
+      "phone": "+539 997941179",
+      "country": "Ecuador",
+      "city": "Quito",
+      "address": "dammer 2",
+      "postalCode": "54561"
+    },
+    "paymentMethod": {
+      "type": "card",
+      "last4": "3665"
+    },
+    "createdAt": "2026-01-08T08:16:27.437Z"
+  }
+]

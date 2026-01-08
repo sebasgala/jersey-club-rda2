@@ -1,0 +1,26 @@
+services:
+  # Backend
+  - type: web
+    name: jersey-club-backend
+    env: node
+    rootDir: server
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: PORT
+        value: 5001
+      - key: JWT_SECRET
+        generateValue: true
+
+  # Frontend
+  - type: web
+    name: jersey-club-frontend
+    env: static
+    buildCommand: npm run build
+    staticPublishPath: build
+    envVars:
+      - key: REACT_APP_API_URL
+        fromService:
+          type: web
+          name: jersey-club-backend
+          property: host

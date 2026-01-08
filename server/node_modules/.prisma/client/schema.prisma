@@ -1,0 +1,155 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model categoria {
+  id_categoria    String     @id @db.Char(6)
+  cat_nombre      String     @unique @db.VarChar(100)
+  cat_descripcion String?
+  cat_createdat   DateTime   @default(now()) @db.Timestamp(6)
+  producto        producto[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model cliente {
+  id_cliente    String    @id @db.Char(6)
+  cli_nombre    String    @db.VarChar(100)
+  cli_apellido  String    @db.VarChar(100)
+  cli_email     String?   @unique @db.VarChar(100)
+  cli_telefono  String?   @db.VarChar(20)
+  cli_direccion String?
+  cli_ciudad    String?   @db.VarChar(50)
+  cli_pais      String?   @db.VarChar(50)
+  cli_createdat DateTime  @default(now()) @db.Timestamp(6)
+  pedido        pedido[]
+  usuario       usuario[]
+}
+
+model departamento {
+  id_departamento String     @id @db.Char(6)
+  dep_nombre      String     @db.VarChar(100)
+  dep_descripcion String?
+  dep_createdat   DateTime   @default(now()) @db.Timestamp(6)
+  empleado        empleado[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model empleado {
+  id_empleado      String        @id @db.Char(6)
+  emp_nombre       String        @db.VarChar(100)
+  emp_apellido     String        @db.VarChar(100)
+  emp_cargo        String?       @db.VarChar(50)
+  emp_salario      Decimal?      @db.Decimal(10, 2)
+  emp_fechaingreso DateTime      @default(dbgenerated("CURRENT_DATE")) @db.Date
+  id_departamento  String?       @db.Char(6)
+  emp_createdat    DateTime      @default(now()) @db.Timestamp(6)
+  departamento     departamento? @relation(fields: [id_departamento], references: [id_departamento], map: "fk_empleado_departamento")
+  usuario          usuario[]
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model factura {
+  id_factura       String   @id @db.Char(6)
+  id_pedido        String   @db.Char(6)
+  id_usuario       String?  @db.Char(6)
+  fac_numero       String   @unique @db.VarChar(50)
+  fac_total        Decimal  @db.Decimal(10, 2)
+  fac_fechaemision DateTime @default(now()) @db.Timestamp(6)
+  fac_tipo         String?  @db.VarChar(20)
+  fac_createdat    DateTime @default(now()) @db.Timestamp(6)
+  pedido           pedido   @relation(fields: [id_pedido], references: [id_pedido], map: "fk_factura_pedido")
+  usuario          usuario? @relation(fields: [id_usuario], references: [id_usuario], map: "fk_factura_usuario")
+
+  @@index([fac_numero], map: "idx_factura_numero")
+  @@index([id_pedido], map: "idx_factura_pedido")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model pedido {
+  id_pedido        String           @id @db.Char(6)
+  id_usuario       String           @db.Char(6)
+  id_cliente       String           @db.Char(6)
+  ped_total        Decimal          @default(0) @db.Decimal(10, 2)
+  ped_subtotal     Decimal          @default(0) @db.Decimal(10, 2)
+  ped_iva          Decimal          @default(0) @db.Decimal(10, 2)
+  ped_descuento    Decimal?         @default(0) @db.Decimal(10, 2)
+  ped_estado       String           @default("pendiente") @db.VarChar(20)
+  ped_fechaentrega DateTime?        @db.Date
+  ped_createdat    DateTime         @default(now()) @db.Timestamp(6)
+  ped_updatedat    DateTime?        @db.Timestamp(6)
+  factura          factura[]
+  cliente          cliente          @relation(fields: [id_cliente], references: [id_cliente], map: "fk_pedido_cliente")
+  usuario          usuario          @relation(fields: [id_usuario], references: [id_usuario], map: "fk_pedido_usuario")
+  pedido_detalle   pedido_detalle[]
+
+  @@index([id_cliente], map: "idx_pedido_cliente")
+  @@index([ped_estado], map: "idx_pedido_estado")
+  @@index([ped_createdat], map: "idx_pedido_fecha")
+  @@index([id_usuario], map: "idx_pedido_usuario")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model pedido_detalle {
+  id_detalle         String   @id @db.Char(6)
+  id_pedido          String   @db.Char(6)
+  id_producto        String   @db.Char(6)
+  det_cantidad       Int
+  det_preciounitario Decimal  @db.Decimal(10, 2)
+  det_subtotal       Decimal  @db.Decimal(10, 2)
+  det_descuento      Decimal? @default(0) @db.Decimal(5, 2)
+  det_createdat      DateTime @default(now()) @db.Timestamp(6)
+  pedido             pedido   @relation(fields: [id_pedido], references: [id_pedido], onDelete: Cascade, map: "fk_detalle_pedido")
+  producto           producto @relation(fields: [id_producto], references: [id_producto], map: "fk_detalle_producto")
+
+  @@index([id_pedido], map: "idx_detalle_pedido")
+  @@index([id_producto], map: "idx_detalle_producto")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model producto {
+  id_producto     String           @id @db.Char(6)
+  prd_nombre      String           @db.VarChar(200)
+  prd_descripcion String?
+  prd_precio      Decimal          @db.Decimal(10, 2)
+  prd_stock       Int              @default(0)
+  prd_stockminimo Int              @default(5)
+  id_categoria    String?          @db.Char(6)
+  prd_activo      Boolean          @default(true)
+  prd_createdat   DateTime         @default(now()) @db.Timestamp(6)
+  prd_updatedat   DateTime?        @updatedAt @db.Timestamp(6)
+  pedido_detalle  pedido_detalle[]
+  categoria       categoria?       @relation(fields: [id_categoria], references: [id_categoria], map: "fk_producto_categoria")
+
+  @@index([id_categoria], map: "idx_producto_categoria")
+  @@index([prd_nombre], map: "idx_producto_nombre")
+  @@index([prd_stock], map: "idx_producto_stock")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model usuario {
+  id_usuario       String    @id @db.Char(6)
+  usu_email        String    @unique @db.VarChar(100)
+  usu_passwordhash String
+  usu_role         String    @db.VarChar(10)
+  id_cliente       String?   @db.Char(6)
+  id_empleado      String?   @db.Char(6)
+  usu_createdat    DateTime  @default(now()) @db.Timestamp(6)
+  usu_lastlogin    DateTime? @db.Timestamp(6)
+  factura          factura[]
+  pedido           pedido[]
+  cliente          cliente?  @relation(fields: [id_cliente], references: [id_cliente], onDelete: Cascade, map: "fk_usuario_cliente")
+  empleado         empleado? @relation(fields: [id_empleado], references: [id_empleado], onDelete: Cascade, map: "fk_usuario_empleado")
+
+  @@index([usu_email], map: "idx_usuario_email")
+  @@index([usu_role], map: "idx_usuario_role")
+}
