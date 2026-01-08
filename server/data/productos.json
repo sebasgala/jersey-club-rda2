@@ -768,5 +768,16 @@
     "categoria": "Fútbol",
     "imagen": "/assets/images/america-2025-visitante.webp",
     "createdAt": "2026-01-08T06:46:14.008Z"
+  },
+  {
+    "id": "P80972",
+    "nombre": "America 2025 tecera",
+    "descripcion": "america",
+    "precio": 50,
+    "stock": 1,
+    "categoryId": "C00004",
+    "categoria": "Fútbol",
+    "imagen": "/assets/images/america-2025-visitante.webp",
+    "createdAt": "2026-01-08T13:01:24.492Z"
   }
 ]

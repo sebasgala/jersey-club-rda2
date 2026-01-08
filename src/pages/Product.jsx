@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { fetchProductDetails } from "../controllers";
+import { fetchProductDetails, fetchProducts } from "../controllers";
 import Button from "../components/ui/button";
 import { useCart } from "../context/CartContext";
 
@@ -135,47 +135,51 @@ export default function Product() {
           return;
         }
 
-        // 2. Si no está en local, intentar con la API del backend por ID directo
-        // Si el ID parece un slug (contiene guiones), quizás falle, pero intentamos igual.
-        const data = await fetchProductDetails(id);
-        if (data) {
-          const enrichedData = enrichProduct(data);
-          setProduct(enrichedData);
-          setMainImage(enrichedData.image);
-          setSelectedColor(enrichedData.colors?.[0] || null);
-        } else {
-          // 3. Fallback: El ID podría ser un slug y el backend solo acepta IDs.
-          // Buscamos TODOS los productos del backend para encontrar el match por slug.
-          // Nota: Esto no es lo más optimizado para producción masiva, pero resuelve el problema actual.
-          try {
-            // Importamos dinámicamente o usamos fetch directo para evitar dependencias circulares complejas
-            const res = await fetch('/api/productos');
-            const result = await res.json();
-
-            if (result.status === 'success' && Array.isArray(result.data)) {
-              const allBackendProducts = result.data.map(p => enrichProduct(p));
-              const searchSlug = id.toLowerCase();
-
-              const found = allBackendProducts.find(p =>
-                p.id === id ||
-                p.slug === searchSlug ||
-                generateSlug(p.title) === searchSlug
-              );
-
-              if (found) {
-                setProduct(found);
-                setMainImage(found.image);
-                setSelectedColor(found.colors?.[0] || null);
-              } else {
-                throw new Error("Producto no encontrado en backend tras búsqueda por slug.");
-              }
-            } else {
-              throw new Error("Error obteniendo lista completa de productos.");
-            }
-          } catch (slugErr) {
-            console.error("Error fallback slug search:", slugErr);
-            setError("Producto no encontrado.");
+        // 2. Intentar con la API del backend por ID directo
+        try {
+          const res = await fetchProductDetails(id);
+          if (res && res.status === 'success' && res.data) {
+            const enrichedData = enrichProduct(res.data);
+            setProduct(enrichedData);
+            setMainImage(enrichedData.image);
+            setSelectedColor(enrichedData.colors?.[0] || null);
+            setLoading(false);
+            return;
           }
+        } catch (apiErr) {
+          console.warn("ID lookup failed, trying slug fallback...", id);
+          // Proceed to slug fallback
+        }
+
+        // 3. Fallback: El ID podría ser un slug y el backend solo acepta IDs numéricos.
+        // Buscamos en TODOS los productos del backend para encontrar el match por slug.
+        try {
+          const result = await fetchProducts();
+
+          if (result && result.status === 'success' && Array.isArray(result.data)) {
+            const allBackendProducts = result.data.map(p => enrichProduct(p));
+            const searchSlug = id.toLowerCase();
+
+            const found = allBackendProducts.find(p =>
+              String(p.id) === String(id) ||
+              p.slug === searchSlug ||
+              generateSlug(p.title) === searchSlug ||
+              generateSlug(p.nombre) === searchSlug
+            );
+
+            if (found) {
+              setProduct(found);
+              setMainImage(found.image);
+              setSelectedColor(found.colors?.[0] || null);
+            } else {
+              throw new Error("Producto no encontrado en backend tras búsqueda por slug.");
+            }
+          } else {
+            throw new Error("Error obteniendo lista completa de productos.");
+          }
+        } catch (slugErr) {
+          console.error("Error fallback slug search:", slugErr);
+          setError("Producto no encontrado.");
         }
       } catch (err) {
         console.error("Error fetching product details:", err);

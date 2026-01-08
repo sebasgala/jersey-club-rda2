@@ -49,12 +49,12 @@ const ProductCard = ({ product }) => {
     }
   };
 
-  // Usar slug para la URL si es posible, fallback al ID
-  const productSlug = generateSlug(product.nombre || product.title) || product.id;
+  // Usar ID para la navegación directa (más fiable para productos creados por el backend)
+  const productId = product.id;
 
   return (
     <Link
-      to={`/product/${productSlug}`}
+      to={`/product/${productId}`}
       onClick={handleClick}
       className="group bg-white border border-gray-200 rounded-lg hover:shadow-xl transition-all duration-300 flex flex-col h-full overflow-hidden"
     >
