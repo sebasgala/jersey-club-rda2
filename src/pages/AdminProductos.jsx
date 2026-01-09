@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { getProducts, createProduct, updateProduct, deleteProduct } from '../models/httpClient';
 import { useAuth } from '../context/AuthContext';
 
@@ -36,28 +37,30 @@ const CATEGORIAS = [
 
 export default function AdminProductos() {
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   // Calcular rol admin desde el usuario
   const isAdmin = user?.rol === 'admin' || user?.role === 'admin' || user?.isAdmin === true;
-  
+
   // Inicializar el estado con array vacío - los productos vienen del backend
   const [products, setProducts] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
 
   // Estados principales
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
-  
+
   // Estados del formulario
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [currentProduct, setCurrentProduct] = useState(initialProductState);
   const [formErrors, setFormErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
-  
+
   // Estado para confirmación de eliminación
   const [deleteConfirm, setDeleteConfirm] = useState({ open: false, product: null });
-  
+
   // Estado para el menú de ajustes
   const [showSettingsMenu, setShowSettingsMenu] = useState(false);
 
@@ -113,6 +116,17 @@ export default function AdminProductos() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [showSettingsMenu]);
 
+  // Filtrar productos basados en el término de búsqueda
+  const filteredProducts = products.filter(product => {
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      product.nombre?.toLowerCase().includes(searchLower) ||
+      product.id?.toString().toLowerCase().includes(searchLower) ||
+      product.categoria?.toLowerCase().includes(searchLower) ||
+      product.descripcion?.toLowerCase().includes(searchLower)
+    );
+  });
+
   // Validar formulario
   const validateForm = () => {
     const errors = {};
@@ -166,6 +180,10 @@ export default function AdminProductos() {
   // Guardar producto (crear o actualizar)
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!validateForm()) return;
+
+    setSubmitting(true);
     const productData = {
       nombre: currentProduct.nombre,
       descripcion: currentProduct.descripcion || currentProduct.nombre,
@@ -178,11 +196,20 @@ export default function AdminProductos() {
     };
 
     try {
-      await createProduct(productData);
-      setSuccessMessage('Producto creado exitosamente');
+      if (isEditing) {
+        await updateProduct(currentProduct.id, productData);
+        setSuccessMessage('Producto actualizado exitosamente');
+      } else {
+        await createProduct(productData);
+        setSuccessMessage('Producto creado exitosamente');
+      }
+      setIsFormOpen(false);
       fetchProducts();
     } catch (err) {
-      setError('Error al crear el producto');
+      setError(`Error al ${isEditing ? 'actualizar' : 'crear'} el producto`);
+      console.error(err);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -228,7 +255,26 @@ export default function AdminProductos() {
                 Gestiona el inventario de productos del Jersey Club EC.
               </p>
             </div>
-            <div className="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
+
+            {/* Barra de búsqueda integrada */}
+            <div className="mt-4 sm:mt-0 sm:ml-8 flex-grow max-w-md">
+              <div className="relative rounded-md shadow-sm">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </div>
+                <input
+                  type="text"
+                  className="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md py-2"
+                  placeholder="Buscar por nombre, ID o categoría..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="mt-4 sm:mt-0 sm:ml-8 sm:flex-none">
               <div className="flex space-x-3">
                 {/* Botón principal - Agregar Producto */}
                 <button
@@ -389,24 +435,27 @@ export default function AdminProductos() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {Array.isArray(products) && products.length === 0 ? (
+                  {filteredProducts.length === 0 ? (
                     <tr>
                       <td colSpan="5" className="px-6 py-12 text-center text-gray-500">
                         <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
-                        <p className="mt-2 text-sm">No hay productos registrados</p>
-                        <button
-                          onClick={handleCreate}
-                          className="mt-4 text-indigo-600 hover:text-indigo-500 font-medium"
-                        >
-                          Crear el primer producto
-                        </button>
+                        <p className="mt-2 text-sm">
+                          {searchTerm ? `No se encontraron productos para "${searchTerm}"` : 'No hay productos registrados'}
+                        </p>
+                        {!searchTerm && (
+                          <button
+                            onClick={handleCreate}
+                            className="mt-4 text-indigo-600 hover:text-indigo-500 font-medium"
+                          >
+                            Crear el primer producto
+                          </button>
+                        )}
                       </td>
                     </tr>
                   ) : (
-                    Array.isArray(products) &&
-                    products.map((product) => (
+                    filteredProducts.map((product) => (
                       <tr key={product.id} className="hover:bg-gray-50 transition-colors">
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center">
@@ -438,14 +487,23 @@ export default function AdminProductos() {
                           ${parseFloat(product.precio).toFixed(2)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`text-sm font-medium ${
-                            product.stock > 10 ? 'text-green-600' : 
+                          <span className={`text-sm font-medium ${product.stock > 10 ? 'text-green-600' :
                             product.stock > 0 ? 'text-yellow-600' : 'text-red-600'
-                          }`}>
+                            }`}>
                             {product.stock} unidades
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                          <button
+                            onClick={() => navigate('/admin/ordenes-compra', { state: { product: product } })}
+                            className="bg-green-50 text-green-700 hover:bg-green-100 p-2 rounded-lg mr-2 transition-colors border border-green-200"
+                            title="Reponer Stock (Orden de Compra)"
+                          >
+                            <svg className="h-4 w-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                            </svg>
+                            <span className="text-xs font-bold uppercase tracking-wider">Stock</span>
+                          </button>
                           <button
                             onClick={() => handleEdit(product)}
                             className="text-indigo-600 hover:text-indigo-900 mr-4 transition-colors"
@@ -479,8 +537,8 @@ export default function AdminProductos() {
           <div className="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
             <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
               {/* Overlay */}
-              <div 
-                className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" 
+              <div
+                className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
                 aria-hidden="true"
                 onClick={() => setIsFormOpen(false)}
               ></div>
@@ -507,11 +565,10 @@ export default function AdminProductos() {
                           id="nombre"
                           value={currentProduct.nombre}
                           onChange={handleInputChange}
-                          className={`mt-1 block w-full rounded-md shadow-sm sm:text-sm ${
-                            formErrors.nombre 
-                              ? 'border-red-300 focus:ring-red-500 focus:border-red-500' 
-                              : 'border-gray-300 focus:ring-indigo-500 focus:border-indigo-500'
-                          }`}
+                          className={`mt-1 block w-full rounded-md shadow-sm sm:text-sm ${formErrors.nombre
+                            ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
+                            : 'border-gray-300 focus:ring-indigo-500 focus:border-indigo-500'
+                            }`}
                           placeholder="Ej: Camiseta Barcelona 2024"
                         />
                         {formErrors.nombre && (
@@ -549,11 +606,10 @@ export default function AdminProductos() {
                             min="0"
                             value={currentProduct.precio}
                             onChange={handleInputChange}
-                            className={`mt-1 block w-full rounded-md shadow-sm sm:text-sm ${
-                              formErrors.precio 
-                                ? 'border-red-300 focus:ring-red-500 focus:border-red-500' 
-                                : 'border-gray-300 focus:ring-indigo-500 focus:border-indigo-500'
-                            }`}
+                            className={`mt-1 block w-full rounded-md shadow-sm sm:text-sm ${formErrors.precio
+                              ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
+                              : 'border-gray-300 focus:ring-indigo-500 focus:border-indigo-500'
+                              }`}
                             placeholder="0.00"
                           />
                           {formErrors.precio && (
@@ -572,11 +628,10 @@ export default function AdminProductos() {
                             min="0"
                             value={currentProduct.stock}
                             onChange={handleInputChange}
-                            className={`mt-1 block w-full rounded-md shadow-sm sm:text-sm ${
-                              formErrors.stock 
-                                ? 'border-red-300 focus:ring-red-500 focus:border-red-500' 
-                                : 'border-gray-300 focus:ring-indigo-500 focus:border-indigo-500'
-                            }`}
+                            className={`mt-1 block w-full rounded-md shadow-sm sm:text-sm ${formErrors.stock
+                              ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
+                              : 'border-gray-300 focus:ring-indigo-500 focus:border-indigo-500'
+                              }`}
                             placeholder="0"
                           />
                           {formErrors.stock && (
@@ -595,11 +650,10 @@ export default function AdminProductos() {
                           id="categoryId"
                           value={currentProduct.categoryId}
                           onChange={handleInputChange}
-                          className={`mt-1 block w-full rounded-md shadow-sm sm:text-sm ${
-                            formErrors.categoria 
-                              ? 'border-red-300 focus:ring-red-500 focus:border-red-500' 
-                              : 'border-gray-300 focus:ring-indigo-500 focus:border-indigo-500'
-                          }`}
+                          className={`mt-1 block w-full rounded-md shadow-sm sm:text-sm ${formErrors.categoria
+                            ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
+                            : 'border-gray-300 focus:ring-indigo-500 focus:border-indigo-500'
+                            }`}
                         >
                           <option value="">Selecciona una categoría</option>
                           {CATEGORIAS.map(cat => (
@@ -682,8 +736,8 @@ export default function AdminProductos() {
         {deleteConfirm.open && (
           <div className="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
             <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-              <div 
-                className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" 
+              <div
+                className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
                 aria-hidden="true"
                 onClick={handleDeleteCancel}
               ></div>
@@ -705,7 +759,7 @@ export default function AdminProductos() {
                       </h3>
                       <div className="mt-2">
                         <p className="text-sm text-gray-500">
-                          ¿Estás seguro de que deseas eliminar <strong>{deleteConfirm.product?.nombre}</strong>? 
+                          ¿Estás seguro de que deseas eliminar <strong>{deleteConfirm.product?.nombre}</strong>?
                           Esta acción no se puede deshacer.
                         </p>
                       </div>

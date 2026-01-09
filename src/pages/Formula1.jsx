@@ -15,7 +15,6 @@ const generateProductData = (product, index) => {
     : null;
   const discount = product.isOnSale ? Math.floor(15 + Math.random() * 20) : 0;
   const isBestSeller = index % 3 === 0;
-  const stock = Math.floor(5 + Math.random() * 25);
 
   return {
     ...product,
@@ -24,7 +23,7 @@ const generateProductData = (product, index) => {
     originalPrice,
     discount,
     isBestSeller,
-    stock,
+    stock: product.stock !== undefined ? product.stock : 0, // Stock real
   };
 };
 

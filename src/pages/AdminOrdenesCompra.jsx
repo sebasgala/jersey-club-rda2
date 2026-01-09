@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useLocation } from 'react-router-dom';
 import { getOrdenesCompra, createOrden, updateOrden, deleteOrden, getProducts } from '../models/httpClient';
 
 /**
@@ -16,8 +17,8 @@ import { getOrdenesCompra, createOrden, updateOrden, deleteOrden, getProducts } 
 
 const initialOrderState = {
   proveedor: '',
-  productos: [],
-  total: '',
+  items: [],
+  total: 0,
   estado: 'pendiente',
   fechaEntrega: '',
   notas: '',
@@ -25,25 +26,27 @@ const initialOrderState = {
 };
 
 export default function AdminOrdenesCompra() {
-  // Estados principales - DEBEN estar antes de cualquier return condicional
+  // Estados principales
   const [ordenes, setOrdenes] = useState([]);
   const [productos, setProductos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
-  
+
   // Estados del formulario
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [currentOrder, setCurrentOrder] = useState(initialOrderState);
   const [formErrors, setFormErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
-  
-  // Estado para productos seleccionados
-  const [selectedProducts, setSelectedProducts] = useState([]);
-  
+
+  // Estado para búsqueda de productos
+  const [productSearch, setProductSearch] = useState('');
+
   // Estado para confirmación de eliminación
   const [deleteConfirm, setDeleteConfirm] = useState({ open: false, order: null });
+
+  const location = useLocation();
 
   // Cargar órdenes de compra
   const fetchOrdenes = useCallback(async () => {
@@ -65,10 +68,23 @@ export default function AdminOrdenesCompra() {
     try {
       const response = await getProducts();
       setProductos(response.data || response || []);
+
+      // Manejar producto entrante por navegación (Reponer Stock desde AdminProductos)
+      if (location.state?.product) {
+        const product = location.state.product;
+        console.log('📦 Producto recibido por navegación:', product);
+
+        // Simular apertura de formulario y agregar producto
+        setIsFormOpen(true);
+        handleAddProduct(product);
+
+        // Limpiar estado de ubicación para evitar que se repita al refrescar
+        window.history.replaceState({}, document.title);
+      }
     } catch (err) {
       console.error('Error fetching productos:', err);
     }
-  }, []);
+  }, [location.state, handleAddProduct]);
 
   useEffect(() => {
     fetchOrdenes();
@@ -85,9 +101,14 @@ export default function AdminOrdenesCompra() {
 
   // Calcular total automáticamente
   const calculateTotal = useCallback(() => {
-    const total = selectedProducts.reduce((sum, p) => sum + (p.cantidad * p.precioCompra), 0);
+    const total = (currentOrder.items || []).reduce((sum, item) => {
+      const price = typeof item.precioCompra === 'string'
+        ? parseFloat(item.precioCompra.replace('$', ''))
+        : (item.precioCompra || 0);
+      return sum + (item.cantidad * price);
+    }, 0);
     setCurrentOrder(prev => ({ ...prev, total: total.toFixed(2) }));
-  }, [selectedProducts]);
+  }, [currentOrder.items]);
 
   useEffect(() => {
     calculateTotal();
@@ -96,8 +117,8 @@ export default function AdminOrdenesCompra() {
   // Validar formulario
   const validateForm = () => {
     const errors = {};
-    if (!currentOrder.proveedor.trim()) errors.proveedor = 'El proveedor es requerido';
-    if (selectedProducts.length === 0) errors.productos = 'Debe seleccionar al menos un producto';
+    if (!currentOrder.proveedor?.trim()) errors.proveedor = 'El proveedor es requerido';
+    if (!currentOrder.items || currentOrder.items.length === 0) errors.productos = 'Debe seleccionar al menos un producto';
     if (!currentOrder.total || currentOrder.total <= 0) errors.total = 'El total debe ser mayor a 0';
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
@@ -116,41 +137,63 @@ export default function AdminOrdenesCompra() {
   };
 
   // Agregar producto a la orden
-  const handleAddProduct = (productId) => {
-    if (!productId) return;
-    const product = productos.find(p => p.id === parseInt(productId));
-    if (product && !selectedProducts.find(p => p.id === product.id)) {
-      setSelectedProducts(prev => [...prev, { 
-        ...product, 
-        cantidad: 1,
-        precioCompra: product.precio || 0
-      }]);
+  const handleAddProduct = useCallback((product) => {
+    if (!product) return;
+
+    // Evitar duplicados
+    if (currentOrder.items.find(item => String(item.id) === String(product.id))) {
+      return;
     }
-  };
+
+    const newItem = {
+      id: product.id,
+      nombre: product.nombre || product.title,
+      cantidad: 1,
+      precioCompra: product.precio || product.price || 0,
+      stockActual: product.stock || 0
+    };
+
+    setCurrentOrder(prev => ({
+      ...prev,
+      items: [...prev.items, newItem]
+    }));
+
+    setProductSearch(''); // Limpiar búsqueda
+  }, [currentOrder.items]);
 
   // Actualizar cantidad de producto
   const handleProductQuantityChange = (productId, cantidad) => {
-    setSelectedProducts(prev => prev.map(p => 
-      p.id === productId ? { ...p, cantidad: parseInt(cantidad) || 1 } : p
-    ));
+    const qty = parseInt(cantidad) || 0;
+    setCurrentOrder(prev => ({
+      ...prev,
+      items: prev.items.map(item =>
+        String(item.id) === String(productId) ? { ...item, cantidad: qty } : item
+      )
+    }));
   };
 
   // Actualizar precio de compra
   const handleProductPriceChange = (productId, precio) => {
-    setSelectedProducts(prev => prev.map(p => 
-      p.id === productId ? { ...p, precioCompra: parseFloat(precio) || 0 } : p
-    ));
+    const p = parseFloat(precio) || 0;
+    setCurrentOrder(prev => ({
+      ...prev,
+      items: prev.items.map(item =>
+        String(item.id) === String(productId) ? { ...item, precioCompra: p } : item
+      )
+    }));
   };
 
   // Eliminar producto de la selección
   const handleRemoveProduct = (productId) => {
-    setSelectedProducts(prev => prev.filter(p => p.id !== productId));
+    setCurrentOrder(prev => ({
+      ...prev,
+      items: prev.items.filter(item => String(item.id) !== String(productId))
+    }));
   };
 
   // Abrir formulario para crear
   const handleCreate = () => {
     setCurrentOrder(initialOrderState);
-    setSelectedProducts([]);
     setIsEditing(false);
     setFormErrors({});
     setIsFormOpen(true);
@@ -161,32 +204,20 @@ export default function AdminOrdenesCompra() {
     setCurrentOrder({
       id: order.id,
       proveedor: order.proveedor || '',
-      productos: order.productos || [],
-      total: order.total || '',
+      items: order.items || order.productos || [], // Compatibilidad
+      total: order.total || 0,
       estado: order.estado || 'pendiente',
       fechaEntrega: order.fechaEntrega || '',
       notas: order.notas || '',
       tipo: 'compra',
     });
-    
-    // Cargar productos seleccionados
-    if (Array.isArray(order.productos)) {
-      setSelectedProducts(order.productos.map(p => ({
-        id: p.id || p.productoId,
-        nombre: p.nombre || productos.find(prod => prod.id === p.id)?.nombre || 'Producto',
-        cantidad: p.cantidad || 1,
-        precioCompra: p.precioCompra || p.precio || 0
-      })));
-    } else {
-      setSelectedProducts([]);
-    }
-    
+
     setIsEditing(true);
     setFormErrors({});
     setIsFormOpen(true);
   };
 
-  // Validar y guardar orden (crear o actualizar)
+  // Guardar orden
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
@@ -194,15 +225,19 @@ export default function AdminOrdenesCompra() {
     setSubmitting(true);
     setError(null);
 
+    // Mapear shippingData para cumplir validación del backend
     const orderData = {
       ...currentOrder,
+      items: currentOrder.items,
+      paymentMethod: 'Factura Transferencia', // Por defecto para compras
+      shippingData: {
+        fullName: `Proveedor: ${currentOrder.proveedor}`,
+        address: 'Bodega Principal',
+        city: 'Quito',
+        phone: 'N/A',
+        email: 'N/A'
+      },
       tipo: 'compra',
-      productos: selectedProducts.map(p => ({
-        id: p.id,
-        nombre: p.nombre,
-        cantidad: p.cantidad,
-        precioCompra: p.precioCompra
-      })),
       total: parseFloat(currentOrder.total),
       fecha: new Date().toISOString(),
     };
@@ -218,7 +253,7 @@ export default function AdminOrdenesCompra() {
       setIsFormOpen(false);
       fetchOrdenes();
     } catch (err) {
-      setError(isEditing 
+      setError(isEditing
         ? 'Error al actualizar la orden de compra. Por favor, intenta de nuevo.'
         : 'Error al crear la orden de compra. Por favor, intenta de nuevo.'
       );
@@ -391,25 +426,31 @@ export default function AdminOrdenesCompra() {
                           <div className="text-sm text-gray-900">{order.proveedor || 'Sin proveedor'}</div>
                         </td>
                         <td className="px-6 py-4">
-                          <div className="text-sm text-gray-900">
-                            {Array.isArray(order.productos) ? (
-                              <span>{order.productos.length} producto(s)</span>
+                          <div className="text-sm text-gray-900 font-medium">
+                            {Array.isArray(order.items) ? (
+                              <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded-md text-xs">
+                                {order.items.length} ítems
+                              </span>
+                            ) : Array.isArray(order.productos) ? (
+                              <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded-md text-xs">
+                                {order.productos.length} productos
+                              </span>
                             ) : (
-                              <span>-</span>
+                              <span className="text-gray-400">-</span>
                             )}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">{formatDate(order.fecha)}</div>
+                          <div className="text-sm text-gray-500">{formatDate(order.fecha)}</div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">
+                          <div className="text-base font-bold text-gray-900">
                             ${parseFloat(order.total || 0).toFixed(2)}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getEstadoBadgeColor(order.estado)}`}>
-                            {order.estado || 'pendiente'}
+                          <span className={`px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full ${getEstadoBadgeColor(order.estado)}`}>
+                            {order.estado?.toUpperCase() || 'PENDIENTE'}
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -496,118 +537,151 @@ export default function AdminOrdenesCompra() {
                         </div>
                       </div>
 
-                      {/* Selección de productos */}
+                      {/* Selección de productos mejorada con búsqueda */}
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Productos <span className="text-red-500">*</span>
+                          Buscar Productos para Restock <span className="text-red-500">*</span>
                         </label>
-                        <div className="flex gap-2 mb-2">
-                          <select
-                            onChange={(e) => {
-                              handleAddProduct(e.target.value);
-                              e.target.value = '';
-                            }}
-                            className="flex-1 rounded-md border-gray-300 shadow-sm sm:text-sm"
-                          >
-                            <option value="">Seleccionar producto...</option>
-                            {productos.filter(p => !selectedProducts.find(sp => sp.id === p.id)).map(p => (
-                              <option key={p.id} value={p.id}>{p.nombre} - ${p.precio}</option>
-                            ))}
-                          </select>
-                        </div>
-                        {formErrors.productos && <p className="text-sm text-red-600">{formErrors.productos}</p>}
+                        <div className="relative">
+                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i className="fa fa-search text-gray-400"></i>
+                          </div>
+                          <input
+                            type="text"
+                            placeholder="Buscar por nombre o ID..."
+                            value={productSearch}
+                            onChange={(e) => setProductSearch(e.target.value)}
+                            className="pl-10 block w-full rounded-md border-gray-300 shadow-sm focus:ring-green-500 focus:border-green-500 sm:text-sm"
+                          />
 
-                        {/* Lista de productos seleccionados */}
-                        {selectedProducts.length > 0 && (
-                          <div className="border rounded-md overflow-hidden">
-                            <table className="min-w-full divide-y divide-gray-200">
-                              <thead className="bg-gray-50">
-                                <tr>
-                                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">Producto</th>
-                                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">Cantidad</th>
-                                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">Precio Compra</th>
-                                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">Subtotal</th>
-                                  <th className="px-3 py-2"></th>
-                                </tr>
-                              </thead>
-                              <tbody className="divide-y divide-gray-200">
-                                {selectedProducts.map(p => (
-                                  <tr key={p.id}>
-                                    <td className="px-3 py-2 text-sm">{p.nombre}</td>
-                                    <td className="px-3 py-2">
-                                      <input
-                                        type="number"
-                                        min="1"
-                                        value={p.cantidad}
-                                        onChange={(e) => handleProductQuantityChange(p.id, e.target.value)}
-                                        className="w-20 rounded-md border-gray-300 shadow-sm sm:text-sm"
-                                      />
-                                    </td>
-                                    <td className="px-3 py-2">
+                          {/* Resultados de búsqueda */}
+                          {productSearch.trim().length > 1 && (
+                            <div className="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm">
+                              {productos
+                                .filter(p => (
+                                  (p.nombre || p.title || '').toLowerCase().includes(productSearch.toLowerCase()) ||
+                                  (String(p.id).toLowerCase().includes(productSearch.toLowerCase()))
+                                ))
+                                .slice(0, 10)
+                                .map(product => (
+                                  <div
+                                    key={product.id}
+                                    onClick={() => handleAddProduct(product)}
+                                    className="cursor-pointer hover:bg-green-50 px-4 py-2 flex items-center justify-between border-b last:border-0"
+                                  >
+                                    <div className="flex items-center">
+                                      {product.imagen && (
+                                        <img src={product.imagen || product.image} alt="" className="h-8 w-8 object-contain mr-3 rounded" />
+                                      )}
+                                      <div>
+                                        <div className="font-medium text-gray-900">{product.nombre || product.title}</div>
+                                        <div className="text-xs text-gray-500">ID: {product.id} | Cat: {product.categoria}</div>
+                                      </div>
+                                    </div>
+                                    <div className="text-right">
+                                      <div className="text-sm font-bold text-gray-900">${product.precio || product.price}</div>
+                                      <div className={`text-xs ${product.stock <= 5 ? 'text-red-600 font-bold' : 'text-gray-500'}`}>
+                                        Stock: {product.stock}
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))}
+                              {productos.filter(p => (p.nombre || p.title || '').toLowerCase().includes(productSearch.toLowerCase())).length === 0 && (
+                                <div className="px-4 py-2 text-sm text-gray-500">No se encontraron productos</div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                        {formErrors.productos && <p className="mt-1 text-sm text-red-600 font-medium">{formErrors.productos}</p>}
+                      </div>
+
+                      {/* Lista de productos seleccionados */}
+                      {currentOrder.items && currentOrder.items.length > 0 && (
+                        <div className="mt-4 border rounded-xl overflow-hidden shadow-sm">
+                          <table className="min-w-full divide-y divide-gray-200">
+                            <thead className="bg-gray-50">
+                              <tr>
+                                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Producto</th>
+                                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase">Stock Act.</th>
+                                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase">Cantidad</th>
+                                <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase">P. Compra</th>
+                                <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase">Subtotal</th>
+                                <th className="px-4 py-3"></th>
+                              </tr>
+                            </thead>
+                            <tbody className="bg-white divide-y divide-gray-100">
+                              {currentOrder.items.map(item => (
+                                <tr key={item.id} className="hover:bg-gray-50 transition-colors">
+                                  <td className="px-4 py-3 text-sm font-medium text-gray-900">{item.nombre}</td>
+                                  <td className="px-4 py-3 text-center text-sm text-gray-500">{item.stockActual}</td>
+                                  <td className="px-4 py-3 text-center">
+                                    <input
+                                      type="number"
+                                      min="1"
+                                      value={item.cantidad}
+                                      onChange={(e) => handleProductQuantityChange(item.id, e.target.value)}
+                                      className="w-20 mx-auto rounded-md border-gray-300 shadow-sm focus:ring-green-500 focus:border-green-500 sm:text-sm transition-all"
+                                    />
+                                  </td>
+                                  <td className="px-4 py-3 text-right">
+                                    <div className="flex items-center justify-end">
+                                      <span className="mr-1 text-gray-500">$</span>
                                       <input
                                         type="number"
                                         step="0.01"
                                         min="0"
-                                        value={p.precioCompra}
-                                        onChange={(e) => handleProductPriceChange(p.id, e.target.value)}
-                                        className="w-24 rounded-md border-gray-300 shadow-sm sm:text-sm"
+                                        value={item.precioCompra}
+                                        onChange={(e) => handleProductPriceChange(item.id, e.target.value)}
+                                        className="w-24 rounded-md border-gray-300 shadow-sm focus:ring-green-500 focus:border-green-500 sm:text-sm"
                                       />
-                                    </td>
-                                    <td className="px-3 py-2 text-sm font-medium">
-                                      ${(p.cantidad * p.precioCompra).toFixed(2)}
-                                    </td>
-                                    <td className="px-3 py-2">
-                                      <button
-                                        type="button"
-                                        onClick={() => handleRemoveProduct(p.id)}
-                                        className="text-red-600 hover:text-red-800"
-                                      >
-                                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                        </svg>
-                                      </button>
-                                    </td>
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
-                          </div>
-                        )}
-                      </div>
+                                    </div>
+                                  </td>
+                                  <td className="px-4 py-3 text-right text-sm font-bold text-gray-900">
+                                    ${(item.cantidad * (typeof item.precioCompra === 'string' ? parseFloat(item.precioCompra.replace('$', '')) : item.precioCompra || 0)).toFixed(2)}
+                                  </td>
+                                  <td className="px-4 py-3 text-center">
+                                    <button
+                                      type="button"
+                                      onClick={() => handleRemoveProduct(item.id)}
+                                      className="text-red-400 hover:text-red-600 transition-colors"
+                                    >
+                                      <i className="fa fa-trash"></i>
+                                    </button>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                            <tfoot className="bg-green-50">
+                              <tr>
+                                <td colSpan="4" className="px-4 py-3 text-right text-sm font-bold text-gray-700">TOTAL ORDEN:</td>
+                                <td className="px-4 py-3 text-right text-lg font-black text-green-700">${currentOrder.total}</td>
+                                <td></td>
+                              </tr>
+                            </tfoot>
+                          </table>
+                        </div>
+                      )}
 
                       {/* Total y Estado */}
                       <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label htmlFor="total" className="block text-sm font-medium text-gray-700">
-                            Total ($)
-                          </label>
-                          <input
-                            type="number"
-                            name="total"
-                            id="total"
-                            step="0.01"
-                            min="0"
-                            value={currentOrder.total}
-                            readOnly
-                            className="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm sm:text-sm"
-                          />
+                        <div className="hidden">
+                          <label htmlFor="total" className="block text-sm font-medium text-gray-700">Total ($)</label>
+                          <input type="number" name="total" id="total" value={currentOrder.total} readOnly />
                         </div>
 
-                        <div>
-                          <label htmlFor="estado" className="block text-sm font-medium text-gray-700">
-                            Estado
-                          </label>
+                        <div className="col-span-2 sm:col-span-1">
+                          <label htmlFor="estado" className="block text-sm font-medium text-gray-700">Estado de Operación</label>
                           <select
                             name="estado"
                             id="estado"
                             value={currentOrder.estado}
                             onChange={handleInputChange}
-                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm"
+                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-green-500 focus:border-green-500 sm:text-sm"
                           >
                             <option value="pendiente">Pendiente</option>
-                            <option value="procesando">Procesando</option>
-                            <option value="enviado">Enviado</option>
-                            <option value="recibido">Recibido</option>
+                            <option value="procesando">En Proceso/Pedido</option>
+                            <option value="enviado">Despachado por Proveedor</option>
+                            <option value="recibido">✅ Recibido y Cargado a Stock</option>
                             <option value="cancelado">Cancelado</option>
                           </select>
                         </div>
@@ -675,7 +749,7 @@ export default function AdminOrdenesCompra() {
                       </h3>
                       <div className="mt-2">
                         <p className="text-sm text-gray-500">
-                          ¿Estás seguro de que deseas eliminar la orden de compra <strong>#{deleteConfirm.order?.id}</strong>? 
+                          ¿Estás seguro de que deseas eliminar la orden de compra <strong>#{deleteConfirm.order?.id}</strong>?
                           Esta acción no se puede deshacer.
                         </p>
                       </div>

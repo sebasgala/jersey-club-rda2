@@ -19,13 +19,12 @@ const PAGE_SIZE = 12;
 const generateProductData = (product, index, prefix) => {
   const rating = (3.5 + Math.random() * 1.5).toFixed(1);
   const reviews = Math.floor(100 + Math.random() * 2000);
-  const originalPrice = product.isOnSale 
+  const originalPrice = product.isOnSale
     ? `$${(parseFloat(product.price.replace('$', '')) * 1.4).toFixed(2)}`
     : null;
   const discount = product.isOnSale ? Math.floor(20 + Math.random() * 15) : 0;
   const isBestSeller = index % 7 === 0;
-  const stock = Math.floor(3 + Math.random() * 20);
-  
+
   return {
     ...product,
     id: product.id || `${prefix}-${index}`, // Usar ID existente o generar uno
@@ -34,7 +33,7 @@ const generateProductData = (product, index, prefix) => {
     originalPrice,
     discount,
     isBestSeller,
-    stock,
+    stock: product.stock !== undefined ? product.stock : 0, // Stock real
     source: prefix, // Para identificar de dónde viene el producto
   };
 };
@@ -84,7 +83,7 @@ const ProductCard = ({ product }) => {
   };
 
   return (
-    <Link 
+    <Link
       to={`/product/${product.id}`}
       onClick={handleClick}
       className="group bg-white border border-gray-200 rounded-lg hover:shadow-xl transition-all duration-300 flex flex-col h-full overflow-hidden"
@@ -101,7 +100,7 @@ const ProductCard = ({ product }) => {
             -{product.discount}%
           </div>
         )}
-        
+
         {/* Imagen */}
         <div className="block p-2 sm:p-4 pb-1 sm:pb-2 w-full">
           <figure className="relative aspect-square w-full overflow-hidden rounded-md bg-gray-50">
@@ -308,24 +307,35 @@ const Ofertas = () => {
     if (hasChanges) {
       setFilters(newFilters);
     }
-  }, [searchParams]); // Solo ejecutar cuando cambian los params
+  }, [searchParams, filters]); // Solo ejecutar cuando cambian los params o filtros externos
+
+  const [searchResults, setSearchResults] = useState([]);
 
   // Obtener productos base según modo (búsqueda global vs ofertas)
-  const baseProducts = useMemo(() => {
-    if (isGlobalSearch) {
-      // Modo búsqueda global: buscar en TODOS los productos
-      const searchResults = searchProducts(globalSearchTerm);
-      // Agregar datos adicionales para visualización
-      return searchResults.map((product, index) => generateProductData(product, index, product.source || 'fb'));
-    } else {
-      // Modo normal: solo productos en oferta
-      return getOfferProducts();
-    }
+  useEffect(() => {
+    const fetchBaseProducts = async () => {
+      if (isGlobalSearch) {
+        try {
+          // Modo búsqueda global: buscar en TODOS los productos (ahora asíncrono)
+          const results = await searchProducts(globalSearchTerm);
+          // Agregar datos adicionales para visualización
+          setSearchResults(results.map((product, index) => generateProductData(product, index, product.source || 'fb')));
+        } catch (error) {
+          console.error("Error en búsqueda global:", error);
+          setSearchResults([]);
+        }
+      } else {
+        // Modo normal: solo productos en oferta
+        setSearchResults(getOfferProducts());
+      }
+    };
+
+    fetchBaseProducts();
   }, [isGlobalSearch, globalSearchTerm]);
 
-  // Aplicar filtros
+  // Aplicar filtros a los resultados cargados
   const filteredProducts = useMemo(() => {
-    let result = [...baseProducts];
+    let result = [...searchResults];
 
     // Filtro por categoría
     if (filters.categories.length > 0) {
@@ -370,7 +380,7 @@ const Ofertas = () => {
     }
 
     return result;
-  }, [baseProducts, filters, sortBy]);
+  }, [searchResults, filters, sortBy]);
 
   const totalPages = Math.ceil(filteredProducts.length / PAGE_SIZE);
   const pagedProducts = filteredProducts.slice(
@@ -420,7 +430,7 @@ const Ofertas = () => {
                 </>
               )}
             </div>
-            
+
             {/* Ordenar por */}
             <div className="flex items-center gap-2">
               <span className="text-sm text-gray-600">Ordenar por:</span>
@@ -472,29 +482,29 @@ const Ofertas = () => {
               <div className="bg-white rounded-lg p-8 text-center">
                 <div className="text-6xl mb-4">{isGlobalSearch ? '🔍' : '😔'}</div>
                 <h3 className="text-xl font-bold text-gray-900 mb-2">
-                  {isGlobalSearch 
-                    ? `No se encontraron productos para "${globalSearchTerm}"` 
+                  {isGlobalSearch
+                    ? `No se encontraron productos para "${globalSearchTerm}"`
                     : 'No hay ofertas disponibles'}
                 </h3>
                 <p className="text-gray-600 mb-4">
-                  {isGlobalSearch 
-                    ? 'Intenta con otros términos de búsqueda o explora nuestras categorías.' 
+                  {isGlobalSearch
+                    ? 'Intenta con otros términos de búsqueda o explora nuestras categorías.'
                     : 'No encontramos productos en oferta con los filtros seleccionados.'}
                 </p>
                 <div className="flex flex-wrap justify-center gap-3">
-                  <Link 
+                  <Link
                     to="/futbol"
                     className="inline-block bg-[#495A72] hover:bg-[#3d4d61] text-white font-medium py-2 px-6 rounded-full transition-colors"
                   >
                     Ver Fútbol
                   </Link>
-                  <Link 
+                  <Link
                     to="/formula1"
                     className="inline-block bg-[#E10600] hover:bg-[#c00500] text-white font-medium py-2 px-6 rounded-full transition-colors"
                   >
                     Ver Fórmula 1
                   </Link>
-                  <Link 
+                  <Link
                     to="/"
                     className="inline-block border border-gray-300 hover:bg-gray-100 text-gray-700 font-medium py-2 px-6 rounded-full transition-colors"
                   >
@@ -522,7 +532,7 @@ const Ofertas = () => {
                       <span className="hidden sm:inline">← Anterior</span>
                       <span className="sm:hidden">←</span>
                     </button>
-                    
+
                     {/* Números de página */}
                     <div className="flex items-center gap-1">
                       {[...Array(Math.min(5, totalPages))].map((_, i) => {
@@ -536,7 +546,7 @@ const Ofertas = () => {
                         } else {
                           pageNum = currentPage - 2 + i;
                         }
-                        
+
                         return (
                           <button
                             key={pageNum}
@@ -544,11 +554,10 @@ const Ofertas = () => {
                               setCurrentPage(pageNum);
                               window.scrollTo({ top: 0, behavior: 'smooth' });
                             }}
-                            className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg text-xs sm:text-sm font-medium transition-colors ${
-                              currentPage === pageNum
-                                ? "bg-black text-white"
-                                : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
-                            }`}
+                            className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg text-xs sm:text-sm font-medium transition-colors ${currentPage === pageNum
+                              ? "bg-black text-white"
+                              : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
+                              }`}
                           >
                             {pageNum}
                           </button>

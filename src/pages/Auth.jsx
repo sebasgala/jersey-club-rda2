@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { setAuth } from '../utils/auth';
 import {
   loginUser
 } from '../models/httpClient';
+import { useAuth } from '../context/AuthContext';
 
 /**
  * =====================================================
@@ -50,6 +50,7 @@ const validatePassword = (password) => {
 export default function Auth() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { isAuthenticated, user, logout, login } = useAuth();
 
   // Obtener la ruta de origen para redirigir después del login
   const from = location.state?.from || '/';
@@ -143,13 +144,8 @@ export default function Auth() {
     }
 
     const { token, user } = response.data;
-
-    // Guardar token para futuras llamadas (Authorization)
-    localStorage.setItem('token', token);
-    // Guardar el usuario completo en localStorage
-    localStorage.setItem('user', JSON.stringify(user));
-
-    return { success: true, user };
+    // Retornamos los datos para que el handleSubmit use el login del contexto
+    return { success: true, user, token };
   };
 
   /**
@@ -166,8 +162,8 @@ export default function Auth() {
 
     try {
       const result = await handleLogin(formData);
-      // Guardar estado de autenticación con datos reales
-      setAuth(true, result.user);
+      // USAR LOGIN DEL CONTEXTO (Esto dispara la actualización inmediata en el Navbar)
+      login(result.user, result.token);
 
       // Redirigir al usuario a la página de origen o al home
       navigate(from, { replace: true });
@@ -178,17 +174,46 @@ export default function Auth() {
     }
   };
 
-  /**
-   * Placeholder para login social
-   */
-  const handleSocialLogin = (provider) => {
-    console.log(`🔗 Social login with: ${provider}`);
-    // TODO: Implementar OAuth con Google/GitHub
-  };
-
   // ==================== RENDER ====================
 
-  const isFormValid = !errors.email && !errors.password && formData.email && formData.password;
+
+  if (isAuthenticated) {
+    return (
+      <div className="min-h-screen w-full bg-gray-50 flex flex-col pt-20 sm:pt-24">
+        <main className="flex-1 flex items-center justify-center px-4 py-8 sm:py-12">
+          <div className="w-full max-w-sm">
+            <div className="bg-white rounded-lg border border-gray-300 p-8 shadow-sm text-center">
+              <div className="w-20 h-20 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl text-indigo-600 font-bold uppercase">
+                  {user?.name?.charAt(0) || user?.nombre?.charAt(0) || user?.email?.charAt(0)}
+                </span>
+              </div>
+              <h1 className="text-xl font-bold text-gray-900 mb-2">¡Hola, {user?.name || user?.nombre}!</h1>
+              <p className="text-sm text-gray-500 mb-6">Has iniciado sesión como <br /><strong>{user?.email}</strong></p>
+
+              <div className="space-y-3">
+                <button
+                  onClick={() => navigate('/')}
+                  className="w-full py-2 px-4 text-sm font-medium rounded-[3px] bg-[#BF1919] text-white hover:bg-[#a81414] transition-all"
+                >
+                  Ir a la tienda
+                </button>
+                <button
+                  onClick={() => {
+                    logout();
+                    navigate('/auth');
+                  }}
+                  className="w-full py-2 px-4 text-sm font-medium rounded-[3px] border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition-all"
+                >
+                  Cerrar sesión
+                </button>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen w-full bg-gray-50 flex flex-col pt-20 sm:pt-24">

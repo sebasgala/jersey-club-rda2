@@ -50,6 +50,12 @@ const saveProducts = (productos) => {
 app.use(cors());
 app.use(express.json());
 
+// Logger global para depuración
+app.use((req, res, next) => {
+  console.log(`📡 [${new Date().toLocaleTimeString()}] ${req.method} ${req.originalUrl}`);
+  next();
+});
+
 // =====================================================
 // ALMACENAMIENTO PERSISTENTE PARA PRODUCTOS
 // =====================================================
@@ -82,6 +88,15 @@ app.get('/api/auth/me', authController.getProfile);
 
 // GET /api/usuarios - Obtener todos los usuarios (para admin)
 app.get('/api/usuarios', authController.getUsers);
+
+// POST /api/usuarios - Crear nuevo usuario (para admin)
+app.post('/api/usuarios', authController.register);
+
+// PUT /api/usuarios/:id - Actualizar usuario (para admin)
+app.put('/api/usuarios/:id', authController.updateUser);
+
+// DELETE /api/usuarios/:id - Eliminar usuario (para admin)
+app.delete('/api/usuarios/:id', authController.deleteUser);
 
 // =====================================================
 // RUTAS DE PRODUCTOS
@@ -244,10 +259,12 @@ let ordenes = loadOrdenes();
 
 // POST /api/ordenes - Crear nueva orden
 app.post('/api/ordenes', (req, res) => {
+  console.log('📥 Recibida petición POST /api/ordenes');
   try {
-    const { shippingData, paymentMethod, items, total, userId } = req.body;
+    const { shippingData, paymentMethod, items, total, userId, estado, fecha, tipo, notas } = req.body;
 
     if (!shippingData || !items || items.length === 0) {
+      console.log('⚠️ Petición rechazada: Datos incompletos');
       return res.status(400).json({
         success: false,
         message: 'Datos de orden incompletos'
@@ -258,29 +275,66 @@ app.post('/api/ordenes', (req, res) => {
       id: generateId(),
       orderNumber: `JC-${Date.now()}-${Math.random().toString(36).substr(2, 5).toUpperCase()}`,
       userId: userId || 'guest',
-      status: 'pending',
+      status: estado || 'pending', // Usar estado si viene del front
+      estado: estado || 'pendiente',
       items,
       total,
       shippingData,
       paymentMethod,
-      createdAt: new Date().toISOString()
+      fecha: fecha || new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+      tipo: tipo || 'venta',
+      notas: notas || ''
     };
 
     ordenes.push(newOrder);
     saveOrdenes(ordenes);
 
+    // --- LÓGICA DE CONTROL DE STOCK ---
+    items.forEach(item => {
+      const productIndex = productos.findIndex(p => p.id === item.id);
+      if (productIndex !== -1) {
+        if (tipo === 'compra') {
+          // Si es una compra (restock), aumentamos el stock
+          productos[productIndex].stock = (productos[productIndex].stock || 0) + (item.cantidad || 0);
+          console.log(`📦 Restock: +${item.cantidad} a ${productos[productIndex].nombre}`);
+        } else {
+          // Si es una venta (o por defecto), reducimos el stock
+          productos[productIndex].stock = Math.max(0, (productos[productIndex].stock || 0) - (item.cantidad || 0));
+          console.log(`🛒 Venta: -${item.cantidad} a ${productos[productIndex].nombre}`);
+        }
+      }
+    });
+    saveProducts(productos);
+    // ----------------------------------
+
+    console.log(`✅ Orden ${newOrder.id} creada con éxito`);
     res.status(201).json({
       success: true,
-      message: 'Orden creada exitosamente',
+      message: 'Orden creada exitosamente y stock actualizado',
       data: newOrder
     });
   } catch (error) {
-    console.error('Error creating order:', error);
+    console.error('❌ Error creating order:', error);
     res.status(500).json({
       success: false,
       message: 'Error interno al crear la orden'
     });
   }
+});
+
+// GET /api/ordenes/compra - Obtener solo órdenes de compra (Mover arriba de /:id)
+app.get('/api/ordenes/compra', (req, res) => {
+  console.log('📡 [GET] Filtrando órdenes de COMPRA');
+  const filtered = ordenes.filter(o => o.tipo === 'compra');
+  res.json({ success: true, data: filtered });
+});
+
+// GET /api/ordenes/venta - Obtener solo órdenes de venta (Mover arriba de /:id)
+app.get('/api/ordenes/venta', (req, res) => {
+  console.log('📡 [GET] Filtrando órdenes de VENTA');
+  const filtered = ordenes.filter(o => o.tipo === 'venta');
+  res.json({ success: true, data: filtered });
 });
 
 // GET /api/ordenes - Obtener todas las órdenes
@@ -290,9 +344,126 @@ app.get('/api/ordenes', (req, res) => {
 
 // GET /api/ordenes/:id - Obtener orden por ID
 app.get('/api/ordenes/:id', (req, res) => {
-  const order = ordenes.find(o => o.id === req.params.id);
+  const { id } = req.params;
+  console.log(`📡 [GET] Buscando orden por ID: ${id}`);
+  const order = ordenes.find(o => String(o.id) === String(id));
   if (!order) return res.status(404).json({ success: false, message: 'Orden no encontrada' });
   res.json({ success: true, data: order });
+});
+
+// PUT /api/ordenes/:id - Actualizar una orden (Fix 404)
+app.put('/api/ordenes/:id', (req, res) => {
+  const { id } = req.params;
+  console.log(`📥 Procesando PUT /api/ordenes/${id}`);
+
+  const index = ordenes.findIndex(o => String(o.id) === String(id));
+
+  if (index === -1) {
+    console.log(`❌ Orden ${id} no encontrada. IDs disponibles:`, ordenes.map(o => o.id));
+    return res.status(404).json({ success: false, message: `Orden ${id} no encontrada` });
+  }
+
+  // --- LÓGICA DE ACTUALIZACIÓN DE STOCK ---
+  const oldOrder = ordenes[index];
+  const newItems = req.body.items || oldOrder.items;
+  const tipo = req.body.tipo || oldOrder.tipo;
+
+  console.log(`⚖️ Ajustando stock para orden ${tipo} (${id})`);
+
+  if (tipo === 'venta') {
+    // 1. Devolver stock de la orden anterior
+    oldOrder.items.forEach(item => {
+      const pIndex = productos.findIndex(p => p.id === item.id);
+      if (pIndex !== -1) {
+        productos[pIndex].stock = (productos[pIndex].stock || 0) + (item.cantidad || 0);
+        console.log(`   🔙 Revertido: +${item.cantidad} a ${productos[pIndex].nombre} (Stock: ${productos[pIndex].stock})`);
+      }
+    });
+    // 2. Restar stock de la nueva versión de la orden
+    newItems.forEach(item => {
+      const pIndex = productos.findIndex(p => p.id === item.id);
+      if (pIndex !== -1) {
+        productos[pIndex].stock = Math.max(0, (productos[pIndex].stock || 0) - (item.cantidad || 0));
+        console.log(`   📉 Aplicado: -${item.cantidad} a ${productos[pIndex].nombre} (Stock: ${productos[pIndex].stock})`);
+      }
+    });
+  } else if (tipo === 'compra') {
+    // Lógica inversa para órdenes de compra (restock)
+    oldOrder.items.forEach(item => {
+      const pIndex = productos.findIndex(p => p.id === item.id);
+      if (pIndex !== -1) {
+        productos[pIndex].stock = Math.max(0, (productos[pIndex].stock || 0) - (item.cantidad || 0));
+        console.log(`   🔙 Revertido restock: -${item.cantidad} a ${productos[pIndex].nombre} (Stock: ${productos[pIndex].stock})`);
+      }
+    });
+    newItems.forEach(item => {
+      const pIndex = productos.findIndex(p => p.id === item.id);
+      if (pIndex !== -1) {
+        productos[pIndex].stock = (productos[pIndex].stock || 0) + (item.cantidad || 0);
+        console.log(`   📈 Aplicado restock: +${item.cantidad} a ${productos[pIndex].nombre} (Stock: ${productos[pIndex].stock})`);
+      }
+    });
+  }
+  saveProducts(productos);
+  // -----------------------------------------
+
+  // Sincronizar estado y status
+  if (req.body.estado) req.body.status = req.body.estado;
+  else if (req.body.status) req.body.estado = req.body.status;
+
+  ordenes[index] = {
+    ...ordenes[index],
+    ...req.body,
+    updatedAt: new Date().toISOString()
+  };
+
+  saveOrdenes(ordenes);
+  console.log(`✅ Orden ${id} actualizada con éxito`);
+  res.json({ success: true, message: 'Orden actualizada exitosamente', data: ordenes[index] });
+});
+
+// DELETE /api/ordenes/:id - Eliminar una orden (Fix 404)
+app.delete('/api/ordenes/:id', (req, res) => {
+  const { id } = req.params;
+  const index = ordenes.findIndex(o => String(o.id) === String(id));
+
+  if (index === -1) {
+    return res.status(404).json({ success: false, message: 'Orden no encontrada' });
+  }
+
+  const orderToDelete = ordenes[index];
+
+  // --- DEVOLVER STOCK AL ELIMINAR ---
+  if (orderToDelete.tipo === 'compra') {
+    orderToDelete.items.forEach(item => {
+      const pIndex = productos.findIndex(p => p.id === item.id);
+      if (pIndex !== -1) {
+        productos[pIndex].stock = Math.max(0, (productos[pIndex].stock || 0) - (item.cantidad || 0));
+      }
+    });
+  } else {
+    // Venta por defecto
+    orderToDelete.items.forEach(item => {
+      const pIndex = productos.findIndex(p => p.id === item.id);
+      if (pIndex !== -1) {
+        productos[pIndex].stock = (productos[pIndex].stock || 0) + (item.cantidad || 0);
+      }
+    });
+  }
+  saveProducts(productos);
+  // ----------------------------------
+
+  ordenes.splice(index, 1);
+  saveOrdenes(ordenes);
+  console.log(`🗑️ Orden ${id} eliminada y stock restaurado`);
+  res.json({ success: true, message: 'Orden eliminada exitosamente' });
+});
+
+// -----------------------------------------------------
+// Catch-all para 404 (para depuración)
+app.use((req, res) => {
+  console.log(`⚠️ 404 - Ruta no encontrada: ${req.method} ${req.originalUrl}`);
+  res.status(404).json({ success: false, message: `Ruta no encontrada: ${req.method} ${req.originalUrl}` });
 });
 
 // =====================================================

@@ -51,7 +51,7 @@ const enrichProduct = (p, category = 'general') => {
       { name: "XL", available: true },
       { name: "XXL", available: true }
     ],
-    stock: p.stock || Math.floor(5 + Math.random() * 20),
+    stock: p.stock !== undefined ? p.stock : 0, // No más stock aleatorio
     isOnSale: p.isOnSale || false,
     discount: p.discount || (p.isOnSale ? 20 : 0),
     description: p.description || p.descripcion || `${title} - Camiseta oficial de alta calidad`,

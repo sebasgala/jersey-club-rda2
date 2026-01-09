@@ -1,0 +1,42 @@
+[
+  {
+    "id": 1,
+    "email": "sebastian.quishpe@jerseyclub.ec",
+    "password": "Admin123!",
+    "name": "Sebastian Quishpe",
+    "rol": "admin",
+    "telefono": "0999999999",
+    "direccion": "Quito, Ecuador"
+  },
+  {
+    "id": 2,
+    "email": "melany.freire@jerseyclub.ec",
+    "password": "Cliente123!",
+    "name": "Melany Freire",
+    "rol": "cliente",
+    "telefono": "0888888888",
+    "direccion": "Guayaquil, Ecuador"
+  },
+  {
+    "id": 3,
+    "email": "mathias.freire@jerseyclub.ec",
+    "password": "Cliente123!",
+    "name": "Mathias Freire",
+    "nombre": "Mathias Freire",
+    "rol": "cliente",
+    "telefono": "099794111",
+    "direccion": "Dammer 2 y luis calisto",
+    "createdAt": "2026-01-09T06:35:12.281Z"
+  },
+  {
+    "id": 4,
+    "email": "juan.carlos@jerseyclub.ec",
+    "password": "Admin123!",
+    "name": "Juan Carlos",
+    "nombre": "Juan Carlos",
+    "rol": "admin",
+    "telefono": "0665585698",
+    "direccion": "dammer 2\n",
+    "createdAt": "2026-01-09T08:28:37.384Z"
+  }
+]

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { getOrdenes, createOrden, updateOrden, deleteOrden, getProducts } from '../models/httpClient';
+import { getOrdenes, createOrden, updateOrden, deleteOrden, getProducts, getUsuarios } from '../models/httpClient';
 
 /**
  * AdminOrdenesVenta - Página de administración CRUD de órdenes de venta a clientes
@@ -15,32 +15,42 @@ import { getOrdenes, createOrden, updateOrden, deleteOrden, getProducts } from '
 
 const initialOrderState = {
   userId: '',
-  productos: '',
-  total: '',
+  items: [], // Array de { id, nombre, precio, cantidad }
+  total: 0,
   estado: 'pendiente',
   direccionEnvio: '',
   metodoPago: 'efectivo',
   notas: '',
   tipo: 'venta',
+  nombreCliente: '',
+  telefonoCliente: '',
+  emailCliente: '',
 };
 
 export default function AdminOrdenesVenta() {
   // Estados principales - DEBEN estar antes de cualquier return condicional
   const [ordenes, setOrdenes] = useState([]);
   const [productos, setProductos] = useState([]);
+  const [usuarios, setUsuarios] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
-  
+
   // Estados del formulario
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [currentOrder, setCurrentOrder] = useState(initialOrderState);
   const [formErrors, setFormErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
-  
+
   // Estado para confirmación de eliminación
   const [deleteConfirm, setDeleteConfirm] = useState({ open: false, order: null });
+
+  // Estados de UI para búsqueda de productos y usuarios
+  const [productSearch, setProductSearch] = useState('');
+  const [filteredProducts, setFilteredProducts] = useState([]);
+  const [userSearch, setUserSearch] = useState('');
+  const [filteredUsers, setFilteredUsers] = useState([]);
 
   // Cargar órdenes (filtrando solo las de tipo venta)
   const fetchOrdenes = useCallback(async () => {
@@ -76,10 +86,55 @@ export default function AdminOrdenesVenta() {
     }
   }, []);
 
+  // Cargar usuarios
+  const fetchUsuarios = useCallback(async () => {
+    try {
+      const response = await getUsuarios();
+      const allUsers = response.data || response || [];
+      setUsuarios(allUsers);
+    } catch (err) {
+      console.error('Error fetching users:', err);
+    }
+  }, []);
+
   useEffect(() => {
     fetchOrdenes();
     fetchProductos();
-  }, [fetchOrdenes, fetchProductos]);
+    fetchUsuarios();
+  }, [fetchOrdenes, fetchProductos, fetchUsuarios]);
+
+  // Filtrar productos por búsqueda
+  useEffect(() => {
+    if (productSearch.trim() === '') {
+      setFilteredProducts([]);
+    } else {
+      const filtered = productos.filter(p =>
+        p.nombre.toLowerCase().includes(productSearch.toLowerCase()) ||
+        p.id.toString().includes(productSearch)
+      );
+      setFilteredProducts(filtered.slice(0, 10));
+    }
+  }, [productSearch, productos]);
+
+  // Filtrar usuarios por búsqueda de email
+  useEffect(() => {
+    if (userSearch.trim() === '') {
+      setFilteredUsers([]);
+    } else {
+      const filtered = usuarios.filter(u =>
+        (u.email && u.email.toLowerCase().includes(userSearch.toLowerCase())) ||
+        (u.nombre && u.nombre.toLowerCase().includes(userSearch.toLowerCase())) ||
+        (u.name && u.name.toLowerCase().includes(userSearch.toLowerCase()))
+      );
+      setFilteredUsers(filtered.slice(0, 5));
+    }
+  }, [userSearch, usuarios]);
+
+  // Recalcular total automáticamente
+  useEffect(() => {
+    const newTotal = currentOrder.items.reduce((sum, item) => sum + (item.precio * item.cantidad), 0);
+    setCurrentOrder(prev => ({ ...prev, total: newTotal }));
+  }, [currentOrder.items]);
 
   // Limpiar mensajes después de 5 segundos
   useEffect(() => {
@@ -92,8 +147,8 @@ export default function AdminOrdenesVenta() {
   // Validar formulario
   const validateForm = () => {
     const errors = {};
-    if (!currentOrder.userId) errors.userId = 'El ID de usuario es requerido';
-    if (!currentOrder.total || currentOrder.total <= 0) errors.total = 'El total debe ser mayor a 0';
+    if (!currentOrder.userId && !currentOrder.nombreCliente) errors.userId = 'Se requiere un ID de usuario o nombre de cliente';
+    if (currentOrder.items.length === 0) errors.items = 'Debes seleccionar al menos un producto';
     if (!currentOrder.direccionEnvio.trim()) errors.direccionEnvio = 'La dirección de envío es requerida';
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
@@ -116,6 +171,7 @@ export default function AdminOrdenesVenta() {
     setCurrentOrder(initialOrderState);
     setIsEditing(false);
     setFormErrors({});
+    setUserSearch('');
     setIsFormOpen(true);
   };
 
@@ -124,16 +180,20 @@ export default function AdminOrdenesVenta() {
     setCurrentOrder({
       id: order.id,
       userId: order.userId || '',
-      productos: Array.isArray(order.productos) ? JSON.stringify(order.productos) : (order.productos || ''),
-      total: order.total || '',
+      items: order.items || [],
+      total: order.total || 0,
       estado: order.estado || 'pendiente',
-      direccionEnvio: order.direccionEnvio || '',
-      metodoPago: order.metodoPago || 'efectivo',
+      direccionEnvio: order.shippingData?.address || order.direccionEnvio || '',
+      metodoPago: order.paymentMethod || order.metodoPago || 'efectivo',
       notas: order.notas || '',
       tipo: 'venta',
+      nombreCliente: order.shippingData?.fullName || '',
+      telefonoCliente: order.shippingData?.phone || '',
+      emailCliente: order.shippingData?.email || '',
     });
     setIsEditing(true);
     setFormErrors({});
+    setUserSearch(order.shippingData?.email || '');
     setIsFormOpen(true);
   };
 
@@ -145,21 +205,24 @@ export default function AdminOrdenesVenta() {
     setSubmitting(true);
     setError(null);
 
+    // Formatear datos para el backend (coincidir con server.js)
     const orderData = {
-      ...currentOrder,
+      userId: currentOrder.userId || 'admin-manual',
+      items: currentOrder.items,
+      total: currentOrder.total,
+      paymentMethod: currentOrder.metodoPago,
+      shippingData: {
+        fullName: currentOrder.nombreCliente || `Cliente ID: ${currentOrder.userId}`,
+        address: currentOrder.direccionEnvio,
+        phone: currentOrder.telefonoCliente || '',
+        email: currentOrder.emailCliente || '',
+        city: 'Ecuador', // Valor por defecto
+      },
+      estado: currentOrder.estado,
+      notas: currentOrder.notas,
       tipo: 'venta',
-      userId: parseInt(currentOrder.userId, 10),
-      total: parseFloat(currentOrder.total),
       fecha: currentOrder.fecha || new Date().toISOString(),
     };
-
-    try {
-      if (typeof orderData.productos === 'string' && orderData.productos.trim()) {
-        orderData.productos = JSON.parse(orderData.productos);
-      }
-    } catch (e) {
-      // Si no es JSON válido, dejarlo como string
-    }
 
     try {
       if (isEditing) {
@@ -172,7 +235,7 @@ export default function AdminOrdenesVenta() {
       setIsFormOpen(false);
       fetchOrdenes();
     } catch (err) {
-      setError(isEditing 
+      setError(isEditing
         ? 'Error al actualizar la orden de venta. Por favor, intenta de nuevo.'
         : 'Error al crear la orden de venta. Por favor, intenta de nuevo.'
       );
@@ -223,17 +286,22 @@ export default function AdminOrdenesVenta() {
     }
   };
 
-  // Formatear fecha
-  const formatDate = (dateString) => {
-    if (!dateString) return 'Sin fecha';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('es-EC', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+  // Formatear fecha con fallback
+  const formatDate = (dateString, fallback) => {
+    const finalDate = dateString || fallback;
+    if (!finalDate) return 'Sin fecha';
+    try {
+      const date = new Date(finalDate);
+      return date.toLocaleDateString('es-EC', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch (e) {
+      return 'Fecha inválida';
+    }
   };
 
   return (
@@ -343,7 +411,7 @@ export default function AdminOrdenesVenta() {
                           <div className="text-sm text-gray-500 truncate max-w-xs">{order.direccionEnvio || 'Sin dirección'}</div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">{formatDate(order.fecha)}</div>
+                          <div className="text-sm text-gray-900">{formatDate(order.fecha, order.createdAt)}</div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm font-medium text-gray-900">${parseFloat(order.total || 0).toFixed(2)}</div>
@@ -404,45 +472,61 @@ export default function AdminOrdenesVenta() {
                     </h3>
 
                     <div className="space-y-4">
-                      {/* Usuario ID y Total */}
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label htmlFor="userId" className="block text-sm font-medium text-gray-700">
-                            ID Usuario <span className="text-red-500">*</span>
-                          </label>
+                      {/* Buscador de Usuarios por Email */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">
+                          Buscar Cliente por Email <span className="text-red-500">*</span>
+                        </label>
+                        <div className="mt-1 relative">
                           <input
-                            type="number"
-                            name="userId"
-                            id="userId"
-                            value={currentOrder.userId}
-                            onChange={handleInputChange}
-                            className={`mt-1 block w-full rounded-md shadow-sm sm:text-sm ${formErrors.userId ? 'border-red-300' : 'border-gray-300'}`}
-                            placeholder="123"
+                            type="text"
+                            value={userSearch}
+                            onChange={(e) => setUserSearch(e.target.value)}
+                            className={`block w-full rounded-md shadow-sm sm:text-sm ${formErrors.userId ? 'border-red-300' : 'border-gray-300'}`}
+                            placeholder="ejemplo@correo.com"
                           />
-                          {formErrors.userId && <p className="mt-1 text-sm text-red-600">{formErrors.userId}</p>}
+                          {filteredUsers.length > 0 && (
+                            <div className="absolute z-20 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-40 overflow-y-auto">
+                              {filteredUsers.map(u => (
+                                <button
+                                  key={u.id}
+                                  type="button"
+                                  onClick={() => {
+                                    setCurrentOrder(prev => ({
+                                      ...prev,
+                                      userId: u.id,
+                                      nombreCliente: u.nombre || u.name || '',
+                                      emailCliente: u.email || '',
+                                      telefonoCliente: u.telefono || '',
+                                      direccionEnvio: u.direccion || prev.direccionEnvio
+                                    }));
+                                    setUserSearch(u.email);
+                                    setFilteredUsers([]);
+                                  }}
+                                  className="w-full text-left px-4 py-2 hover:bg-indigo-50 border-b border-gray-100 last:border-0"
+                                >
+                                  <p className="text-sm font-medium text-gray-900">{u.email}</p>
+                                  <p className="text-xs text-gray-500">{u.nombre || u.name || 'Sin nombre'}</p>
+                                </button>
+                              ))}
+                            </div>
+                          )}
                         </div>
-
-                        <div>
-                          <label htmlFor="total" className="block text-sm font-medium text-gray-700">
-                            Total ($) <span className="text-red-500">*</span>
-                          </label>
-                          <input
-                            type="number"
-                            name="total"
-                            id="total"
-                            step="0.01"
-                            min="0"
-                            value={currentOrder.total}
-                            onChange={handleInputChange}
-                            className={`mt-1 block w-full rounded-md shadow-sm sm:text-sm ${formErrors.total ? 'border-red-300' : 'border-gray-300'}`}
-                            placeholder="0.00"
-                          />
-                          {formErrors.total && <p className="mt-1 text-sm text-red-600">{formErrors.total}</p>}
-                        </div>
+                        {formErrors.userId && <p className="mt-1 text-sm text-red-600">{formErrors.userId}</p>}
                       </div>
 
-                      {/* Estado y Método de Pago */}
+                      {/* Info del pedido solo lectura / estado */}
                       <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label htmlFor="total" className="block text-sm font-medium text-gray-700">
+                            Total de la Orden
+                          </label>
+                          <div className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-gray-100 rounded-md shadow-sm text-sm font-bold text-gray-900">
+                            ${currentOrder.total.toFixed(2)}
+                          </div>
+                          <p className="mt-1 text-xs text-gray-500 italic">Se calcula según productos</p>
+                        </div>
+
                         <div>
                           <label htmlFor="estado" className="block text-sm font-medium text-gray-700">
                             Estado
@@ -461,7 +545,9 @@ export default function AdminOrdenesVenta() {
                             <option value="cancelado">Cancelado</option>
                           </select>
                         </div>
+                      </div>
 
+                      <div className="grid grid-cols-2 gap-4">
                         <div>
                           <label htmlFor="metodoPago" className="block text-sm font-medium text-gray-700">
                             Método de Pago
@@ -478,6 +564,13 @@ export default function AdminOrdenesVenta() {
                             <option value="transferencia">Transferencia</option>
                             <option value="paypal">PayPal</option>
                           </select>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700">ID Usuario Seleccionado</label>
+                          <div className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-gray-50 rounded-md text-sm text-gray-500">
+                            {currentOrder.userId || 'Ninguno'}
+                          </div>
                         </div>
                       </div>
 
@@ -498,24 +591,168 @@ export default function AdminOrdenesVenta() {
                         {formErrors.direccionEnvio && <p className="mt-1 text-sm text-red-600">{formErrors.direccionEnvio}</p>}
                       </div>
 
-                      {/* Productos disponibles */}
-                      <div>
-                        <label htmlFor="productos" className="block text-sm font-medium text-gray-700">
-                          Productos disponibles
-                        </label>
-                        <select
-                          name="productos"
-                          id="productos"
-                          value={currentOrder.productos}
-                          onChange={handleInputChange}
-                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm"
-                        >
-                          {productos.map((producto) => (
-                            <option key={producto.id} value={producto.id}>
-                              {producto.nombre}
-                            </option>
-                          ))}
-                        </select>
+                      {/* Clientes Info */}
+                      <div className="border-t border-gray-100 pt-4 mt-4">
+                        <h4 className="text-sm font-bold text-gray-800 mb-3">Información del Cliente</h4>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700">Nombre Completo</label>
+                            <input
+                              type="text" name="nombreCliente" value={currentOrder.nombreCliente} onChange={handleInputChange}
+                              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm" placeholder="Juan Perez"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700">Teléfono</label>
+                            <input
+                              type="text" name="telefonoCliente" value={currentOrder.telefonoCliente} onChange={handleInputChange}
+                              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm" placeholder="0987654321"
+                            />
+                          </div>
+                        </div>
+                        <div className="mt-3">
+                          <label className="block text-sm font-medium text-gray-700">Email (opcional)</label>
+                          <input
+                            type="email" name="emailCliente" value={currentOrder.emailCliente} onChange={handleInputChange}
+                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm" placeholder="cliente@ejemplo.com"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Selección de Productos (Mini Carrito) */}
+                      <div className="border-t border-gray-100 pt-4 mt-4">
+                        <h4 className="text-sm font-bold text-gray-800 mb-3">Productos de la Orden</h4>
+
+                        {/* Buscador de productos */}
+                        <div className="mb-3 relative">
+                          <div className="flex">
+                            <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
+                              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                            </span>
+                            <input
+                              type="text"
+                              placeholder="Buscar producto por nombre o ID..."
+                              value={productSearch}
+                              onChange={(e) => setProductSearch(e.target.value)}
+                              className="block w-full rounded-none rounded-r-md border-gray-300 shadow-sm sm:text-sm focus:ring-indigo-500 focus:border-indigo-500"
+                            />
+                          </div>
+
+                          {/* Resultados de búsqueda flotante */}
+                          {filteredProducts.length > 0 && (
+                            <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto">
+                              {filteredProducts.map(p => (
+                                <button
+                                  key={p.id}
+                                  type="button"
+                                  onClick={() => {
+                                    const exists = currentOrder.items.find(item => item.id === p.id);
+                                    if (p.stock <= 0) {
+                                      // No hacer nada o mostrar un aviso (opcional)
+                                      return;
+                                    }
+                                    if (exists) {
+                                      if (exists.cantidad < p.stock) {
+                                        setCurrentOrder(prev => ({
+                                          ...prev,
+                                          items: prev.items.map(item => item.id === p.id ? { ...item, cantidad: item.cantidad + 1 } : item)
+                                        }));
+                                      }
+                                    } else {
+                                      setCurrentOrder(prev => ({
+                                        ...prev,
+                                        items: [...prev.items, { id: p.id, nombre: p.nombre, precio: p.precio, cantidad: 1, imagen: p.imagen }]
+                                      }));
+                                    }
+                                    setProductSearch('');
+                                  }}
+                                  disabled={p.stock <= 0}
+                                  className={`w-full text-left px-4 py-2 flex items-center gap-3 border-b border-gray-100 last:border-0 ${p.stock <= 0 ? 'opacity-50 cursor-not-allowed bg-gray-50' : 'hover:bg-indigo-50'}`}
+                                >
+                                  <img src={p.imagen} alt="" className="h-8 w-8 object-cover rounded" />
+                                  <div className="flex-1">
+                                    <p className="text-sm font-medium text-gray-900">{p.nombre}</p>
+                                    <p className="text-xs text-gray-500">${p.precio} - ID: {p.id}</p>
+                                  </div>
+                                  <div className="text-right">
+                                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${p.stock > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                                      Stock: {p.stock || 0}
+                                    </span>
+                                  </div>
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Lista de productos seleccionados */}
+                        <div className="bg-gray-50 rounded-lg p-3 min-h-[100px]">
+                          {currentOrder.items.length === 0 ? (
+                            <p className="text-center text-gray-500 text-sm py-8">No has seleccionado productos</p>
+                          ) : (
+                            <ul className="divide-y divide-gray-200">
+                              {currentOrder.items.map(item => (
+                                <li key={item.id} className="py-2 flex justify-between items-center">
+                                  <div className="flex items-center gap-2">
+                                    <img src={item.imagen} alt="" className="h-8 w-8 rounded object-cover" />
+                                    <div>
+                                      <p className="text-sm font-medium">{item.nombre}</p>
+                                      <p className="text-xs text-gray-500">${item.precio} c/u</p>
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center gap-3">
+                                    <div className="flex items-center border border-gray-300 rounded overflow-hidden h-7">
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          if (item.cantidad > 1) {
+                                            setCurrentOrder(prev => ({
+                                              ...prev,
+                                              items: prev.items.map(i => i.id === item.id ? { ...i, cantidad: i.cantidad - 1 } : i)
+                                            }));
+                                          }
+                                        }}
+                                        className="px-2 hover:bg-gray-200"
+                                      >-</button>
+                                      <span className="px-2 text-xs font-bold">{item.cantidad}</span>
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          const p = productos.find(prod => prod.id === item.id);
+                                          if (p && item.cantidad < p.stock) {
+                                            setCurrentOrder(prev => ({
+                                              ...prev,
+                                              items: prev.items.map(i => i.id === item.id ? { ...i, cantidad: i.cantidad + 1 } : i)
+                                            }));
+                                          }
+                                        }}
+                                        disabled={(() => {
+                                          const p = productos.find(prod => prod.id === item.id);
+                                          return !p || item.cantidad >= p.stock;
+                                        })()}
+                                        className="px-2 hover:bg-gray-200 disabled:opacity-30 disabled:cursor-not-allowed"
+                                      >+</button>
+                                    </div>
+                                    <button
+                                      type="button"
+                                      onClick={() => setCurrentOrder(prev => ({ ...prev, items: prev.items.filter(i => i.id !== item.id) }))}
+                                      className="text-red-500 hover:text-red-700"
+                                    >
+                                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                    </button>
+                                  </div>
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                        </div>
+                        {formErrors.items && <p className="mt-1 text-sm text-red-600">{formErrors.items}</p>}
+
+                        {/* Resumen de total */}
+                        <div className="mt-4 flex justify-between items-center bg-indigo-50 p-3 rounded-lg border border-indigo-100">
+                          <span className="text-sm font-bold text-indigo-900">Total a pagar:</span>
+                          <span className="text-xl font-black text-indigo-700">${currentOrder.total.toFixed(2)}</span>
+                        </div>
                       </div>
 
                       {/* Notas */}
@@ -580,7 +817,7 @@ export default function AdminOrdenesVenta() {
                       </h3>
                       <div className="mt-2">
                         <p className="text-sm text-gray-500">
-                          ¿Estás seguro de que deseas eliminar la orden de venta <strong>#{deleteConfirm.order?.id}</strong>? 
+                          ¿Estás seguro de que deseas eliminar la orden de venta <strong>#{deleteConfirm.order?.id}</strong>?
                           Esta acción no se puede deshacer.
                         </p>
                       </div>

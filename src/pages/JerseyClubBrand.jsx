@@ -16,13 +16,12 @@ const jerseyClubBaseProducts = jerseyClubGeneratedProducts;
 const generateProductData = (product, index) => {
   const rating = (3.5 + Math.random() * 1.5).toFixed(1);
   const reviews = Math.floor(50 + Math.random() * 500);
-  const originalPrice = product.isOnSale 
+  const originalPrice = product.isOnSale
     ? `$${(parseFloat(product.price.replace('$', '')) * 1.3).toFixed(2)}`
     : null;
   const discount = product.isOnSale ? Math.floor(15 + Math.random() * 20) : 0;
   const isBestSeller = index % 3 === 0;
-  const stock = Math.floor(5 + Math.random() * 25);
-  
+
   return {
     ...product,
     rating: parseFloat(rating),
@@ -30,7 +29,7 @@ const generateProductData = (product, index) => {
     originalPrice,
     discount,
     isBestSeller,
-    stock,
+    stock: product.stock !== undefined ? product.stock : 0, // Stock real
   };
 };
 
@@ -50,7 +49,7 @@ const ProductCard = ({ product }) => {
   };
 
   return (
-    <Link 
+    <Link
       to={`/product/${product.id}`}
       onClick={handleClick}
       className="group bg-white border border-gray-200 rounded-lg hover:shadow-xl transition-all duration-300 flex flex-col h-full overflow-hidden"
@@ -67,63 +66,63 @@ const ProductCard = ({ product }) => {
             -{product.discount}%
           </div>
         )}
-      
-      {/* Imagen - MISMO ESTILO QUE FÚTBOL */}
-      <div className="block p-2 sm:p-4 pb-1 sm:pb-2 w-full">
-        <figure className="relative aspect-square w-full overflow-hidden rounded-md bg-gray-50">
-          <img
-            className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-110"
-            src={product.image}
-            alt={product.title}
-            loading="lazy"
-            onError={(e) => { e.target.src = '/assets/images/default.webp'; }}
-          />
-        </figure>
-      </div>
-    </div>
 
-    {/* Contenido */}
-    <div className="flex-1 px-2 sm:px-4 pb-2 sm:pb-4 flex flex-col">
-      {/* Categoría */}
-      <span className="text-[10px] sm:text-xs text-[#1a1a2e] font-medium uppercase tracking-wide">
-        {product.category}
-      </span>
-      
-      {/* Título */}
-      <div className="block text-left mt-1">
-        <h3 className="text-xs sm:text-sm font-medium text-gray-900 group-hover:text-[#1a1a2e] line-clamp-2 min-h-[32px] sm:min-h-[40px]">
-          {product.title}
-        </h3>
+        {/* Imagen - MISMO ESTILO QUE FÚTBOL */}
+        <div className="block p-2 sm:p-4 pb-1 sm:pb-2 w-full">
+          <figure className="relative aspect-square w-full overflow-hidden rounded-md bg-gray-50">
+            <img
+              className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-110"
+              src={product.image}
+              alt={product.title}
+              loading="lazy"
+              onError={(e) => { e.target.src = '/assets/images/default.webp'; }}
+            />
+          </figure>
+        </div>
       </div>
 
-      {/* Género */}
-      <span className="text-[10px] sm:text-xs text-gray-500 mt-1">
-        {product.gender}
-      </span>
+      {/* Contenido */}
+      <div className="flex-1 px-2 sm:px-4 pb-2 sm:pb-4 flex flex-col">
+        {/* Categoría */}
+        <span className="text-[10px] sm:text-xs text-[#1a1a2e] font-medium uppercase tracking-wide">
+          {product.category}
+        </span>
 
-      {/* Precio */}
-      <div className="mt-2 sm:mt-3">
-        {product.isOnSale ? (
-          <div className="space-y-0.5 sm:space-y-1">
-            <div className="flex items-baseline gap-1 sm:gap-2 flex-wrap">
-              <span className="text-lg sm:text-2xl font-bold text-gray-900">{product.price}</span>
-              <span className="text-[10px] sm:text-sm text-gray-500 line-through">{product.originalPrice}</span>
+        {/* Título */}
+        <div className="block text-left mt-1">
+          <h3 className="text-xs sm:text-sm font-medium text-gray-900 group-hover:text-[#1a1a2e] line-clamp-2 min-h-[32px] sm:min-h-[40px]">
+            {product.title}
+          </h3>
+        </div>
+
+        {/* Género */}
+        <span className="text-[10px] sm:text-xs text-gray-500 mt-1">
+          {product.gender}
+        </span>
+
+        {/* Precio */}
+        <div className="mt-2 sm:mt-3">
+          {product.isOnSale ? (
+            <div className="space-y-0.5 sm:space-y-1">
+              <div className="flex items-baseline gap-1 sm:gap-2 flex-wrap">
+                <span className="text-lg sm:text-2xl font-bold text-gray-900">{product.price}</span>
+                <span className="text-[10px] sm:text-sm text-gray-500 line-through">{product.originalPrice}</span>
+              </div>
+              <p className="text-[10px] sm:text-xs text-[#E10600] font-medium">
+                ¡Oferta!
+              </p>
             </div>
-            <p className="text-[10px] sm:text-xs text-[#E10600] font-medium">
-              ¡Oferta!
-            </p>
-          </div>
-        ) : (
-          <span className="text-lg sm:text-2xl font-bold text-gray-900">{product.price}</span>
-        )}
-      </div>
+          ) : (
+            <span className="text-lg sm:text-2xl font-bold text-gray-900">{product.price}</span>
+          )}
+        </div>
 
-      {/* Botón ver producto */}
-      <div className="mt-auto pt-2 sm:pt-3 w-full bg-[#495A72] group-hover:bg-[#2d2d44] text-white font-medium py-1.5 sm:py-2 px-2 sm:px-4 rounded-full text-[10px] sm:text-sm transition-colors shadow-sm text-center">
-        Ver producto
+        {/* Botón ver producto */}
+        <div className="mt-auto pt-2 sm:pt-3 w-full bg-[#495A72] group-hover:bg-[#2d2d44] text-white font-medium py-1.5 sm:py-2 px-2 sm:px-4 rounded-full text-[10px] sm:text-sm transition-colors shadow-sm text-center">
+          Ver producto
+        </div>
       </div>
-    </div>
-  </Link>
+    </Link>
   );
 };
 
@@ -300,7 +299,7 @@ const JerseyClubBrand = () => {
   }, [searchParams]); // Solo ejecutar cuando cambian los params
 
   // Procesar productos con datos adicionales
-  const enrichedProducts = useMemo(() => 
+  const enrichedProducts = useMemo(() =>
     jerseyClubBaseProducts.map((p, i) => generateProductData(p, i)),
     []
   );
@@ -383,7 +382,7 @@ const JerseyClubBrand = () => {
                 {filters.categories.length > 0 && ` en "${filters.categories.join(', ')}"`}
               </p>
             </div>
-            
+
             {/* Ordenar por */}
             <div className="flex items-center gap-2">
               <span className="text-sm text-gray-600">Ordenar por:</span>
@@ -450,7 +449,7 @@ const JerseyClubBrand = () => {
                   <span className="hidden sm:inline">← Anterior</span>
                   <span className="sm:hidden">←</span>
                 </button>
-                
+
                 {/* Números de página */}
                 <div className="flex items-center gap-1">
                   {[...Array(Math.min(5, totalPages))].map((_, i) => {
@@ -464,7 +463,7 @@ const JerseyClubBrand = () => {
                     } else {
                       pageNum = currentPage - 2 + i;
                     }
-                    
+
                     return (
                       <button
                         key={pageNum}
@@ -472,11 +471,10 @@ const JerseyClubBrand = () => {
                           setCurrentPage(pageNum);
                           window.scrollTo({ top: 0, behavior: 'smooth' });
                         }}
-                        className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg text-xs sm:text-sm font-medium transition-colors ${
-                          currentPage === pageNum
+                        className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg text-xs sm:text-sm font-medium transition-colors ${currentPage === pageNum
                             ? "bg-[#1a1a2e] text-white"
                             : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
-                        }`}
+                          }`}
                       >
                         {pageNum}
                       </button>

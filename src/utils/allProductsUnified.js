@@ -19,7 +19,7 @@ import { toSlug } from "./toSlug";
 const generateProductId = (product, index, prefix) => {
   // Si ya tiene ID, usarlo; si no, generar uno basado en título
   if (product.id) return product.id;
-  
+
   const title = product.title || product.name || `producto-${index}`;
   return `${prefix}-${toSlug(title)}`;
 };
@@ -29,18 +29,24 @@ const generateProductId = (product, index, prefix) => {
  */
 const normalizeProduct = (product, index, source, category) => {
   const id = generateProductId(product, index, source);
-  
+  const name = product.nombre || product.title || product.name || "";
+  const image = product.imagen || product.image || "/assets/images/default.webp";
   return {
     ...product,
     id,
-    // Campos normalizados para búsqueda
-    name: product.title || product.name || "",
-    title: product.title || product.name || "",
+    // Campos normalizados para búsqueda y visualización
+    name,
+    nombre: name,
+    title: name,
+    image,
+    imagen: image,
     brand: product.brand || product.team || category,
     category: product.category || category,
-    source, // 'fb' = fútbol, 'f1' = fórmula 1, 'jcb' = jersey club
+    source, // 'fb' = fútbol, 'f1' = fórmula 1, 'jcb' = jersey club, 'db' = backend
     // Campos para filtrado
     isOnSale: product.isOnSale || product.onSale || false,
+    price: product.price || product.precio || "$0.00",
+    precio: product.precio || product.price || "$0.00",
   };
 };
 
@@ -54,39 +60,53 @@ const normalizeProduct = (product, index, source, category) => {
 export const getAllProductsUnified = () => {
   const allProducts = [
     // Productos de Fútbol
-    ...footballProducts.map((p, i) => 
+    ...footballProducts.map((p, i) =>
       normalizeProduct(p, i, 'fb', 'Fútbol')
     ),
     // Productos de Fórmula 1
-    ...formula1Products.map((p, i) => 
+    ...formula1Products.map((p, i) =>
       normalizeProduct(p, i, 'f1', 'Fórmula 1')
     ),
     // Productos de Jersey Club Brand
-    ...jerseyClubGeneratedProducts.map((p, i) => 
+    ...jerseyClubGeneratedProducts.map((p, i) =>
       normalizeProduct(p, i, 'jcb', 'Jersey Club')
     ),
   ];
-  
+
   return allProducts;
 };
 
-// ========================================
-// BÚSQUEDA GLOBAL
-// ========================================
-
 /**
- * Busca productos globalmente por término de búsqueda
- * Busca en: title/name, brand, category, description, team, driver
+ * Busca productos globalmente por término de búsqueda (Asincrónico para incluir datos del backend)
  * @param {string} searchTerm - Término de búsqueda
- * @returns {Array} - Productos que coinciden
+ * @returns {Promise<Array>} - Productos que coinciden
  */
-export const searchProducts = (searchTerm) => {
+export const searchProducts = async (searchTerm) => {
   if (!searchTerm || searchTerm.trim() === "") {
     return [];
   }
 
   const term = searchTerm.toLowerCase().trim();
-  const allProducts = getAllProductsUnified();
+  let allProducts = [];
+
+  try {
+    // Intentar obtener productos actualizados desde el backend
+    const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5001/api'}/productos`);
+    const result = await response.json();
+
+    if (result.success || result.status === 'success') {
+      const apiProducts = result.data;
+
+      // Normalizar productos de la API
+      allProducts = apiProducts.map((p, i) => normalizeProduct(p, i, p.source || 'db', p.categoria || 'General'));
+    } else {
+      // Si falla la API, usar datos locales como fallback
+      allProducts = getAllProductsUnified();
+    }
+  } catch (error) {
+    console.warn("⚠️ API de productos no disponible, usando datos estáticos para búsqueda:", error);
+    allProducts = getAllProductsUnified();
+  }
 
   return allProducts.filter((product) => {
     // Campos a buscar
@@ -99,12 +119,13 @@ export const searchProducts = (searchTerm) => {
       product.team,
       product.driver,
       product.gender,
+      product.id
     ];
 
     // Buscar en todos los campos
     return searchableFields.some((field) => {
       if (!field) return false;
-      return field.toLowerCase().includes(term);
+      return String(field).toLowerCase().includes(term);
     });
   });
 };

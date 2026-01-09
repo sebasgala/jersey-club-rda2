@@ -1,40 +1,65 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
 import CartDrawer from './CartDrawer';
+import { searchProducts } from '../utils/allProductsUnified';
 
 function Navbar({ onOpenCategories }) {
   const [searchQuery, setSearchQuery] = useState("");
+  const [liveResults, setLiveResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
   const [isCartDrawerOpen, setIsCartDrawerOpen] = useState(false);
   const [isAdminMenuOpen, setIsAdminMenuOpen] = useState(false);
   const adminMenuRef = useRef(null);
+  const searchRef = useRef(null);
   const navigate = useNavigate();
 
-  // Obtener información del usuario logueado
-  const getUserFromStorage = () => {
-    try {
-      const userData = localStorage.getItem('user');
-      return userData ? JSON.parse(userData) : null;
-    } catch {
-      return null;
-    }
-  };
-  
-  const user = getUserFromStorage();
-  const isAdmin = user?.rol === 'admin';
-  const isClient = user?.rol === 'cliente';
+  const { user, isAdmin: checkIsAdmin, isAuthenticated } = useAuth();
+  const isAdmin = checkIsAdmin();
 
-  // Cerrar menú admin al hacer clic fuera
+
+  // Cerrar menús al hacer clic fuera
   useEffect(() => {
     const handleClickOutside = (event) => {
+      // Admin menu
       if (adminMenuRef.current && !adminMenuRef.current.contains(event.target)) {
         setIsAdminMenuOpen(false);
+      }
+      // Search results
+      if (searchRef.current && !searchRef.current.contains(event.target)) {
+        setShowDropdown(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
-  
+
+  // Lógica de búsqueda en vivo (debounce)
+  useEffect(() => {
+    if (searchQuery.trim().length < 2) {
+      setLiveResults([]);
+      setShowDropdown(false);
+      return;
+    }
+
+    const delayDebounceFn = setTimeout(async () => {
+      setIsSearching(true);
+      try {
+        const results = await searchProducts(searchQuery);
+        setLiveResults(results.slice(0, 8)); // Mostrar top 8
+        setShowDropdown(true);
+      } catch (error) {
+        console.error("Error en búsqueda en vivo:", error);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchQuery]);
+
   // Obtener contador del carrito
   const { getCartCount } = useCart();
   const cartCount = getCartCount();
@@ -48,12 +73,13 @@ function Navbar({ onOpenCategories }) {
   const executeSearch = () => {
     const trimmedQuery = searchQuery.trim();
     if (trimmedQuery === "") return;
-    
+
     // Navegar a la página de ofertas con el parámetro de búsqueda
     navigate(`/ofertas?search=${encodeURIComponent(trimmedQuery)}`);
-    
-    // Limpiar el input después de buscar
+
+    // Limpiar el input y cerrar
     setSearchQuery("");
+    setShowDropdown(false);
   };
 
   // Manejar tecla Enter en el input
@@ -64,18 +90,6 @@ function Navbar({ onOpenCategories }) {
     }
   };
 
-  const handleCategoryNavigation = (category) => {
-    const routes = {
-      futbol: '/futbol?category=futbol',
-      formula1: '/formula1?category=formula1',
-      jerseyClub: '/jersey-club-brand?brand=jerseyclub',
-      ofertas: '/offers?onSale=true',
-    };
-
-    if (routes[category]) {
-      navigate(routes[category]);
-    }
-  };
 
   return (
     <>
@@ -83,10 +97,10 @@ function Navbar({ onOpenCategories }) {
         <nav className="navbar-optimized" aria-label="Navegación principal">
           {/* Left Section: Hamburger + Categories + Logo */}
           <div className="navbar-left">
-            <button 
-              type="button" 
-              className="navbar-toggle-menu" 
-              aria-expanded="false" 
+            <button
+              type="button"
+              className="navbar-toggle-menu"
+              aria-expanded="false"
               aria-label="Abrir menú"
             >
               <span className="hamburger-line"></span>
@@ -111,17 +125,65 @@ function Navbar({ onOpenCategories }) {
           </div>
 
           {/* Center Section: Search */}
-          <div className="navbar-center">
+          <div className="navbar-center" ref={searchRef}>
             <div className="search__container">
-              <input 
-                className="search__input" 
-                type="text" 
-                placeholder="BUSCAR" 
-                autoComplete="off" 
+              <input
+                className="search__input"
+                type="text"
+                placeholder="BUSCAR PRODUCTOS..."
+                autoComplete="off"
                 value={searchQuery}
                 onChange={handleSearchChange}
                 onKeyDown={handleKeyDown}
+                onFocus={() => searchQuery.trim().length >= 2 && setShowDropdown(true)}
               />
+
+              {/* DROPDOWN DE RESULTADOS */}
+              {showDropdown && (
+                <div className="search-results-dropdown">
+                  {isSearching ? (
+                    <div className="search-loading-indicator">
+                      <i className="fa fa-spinner fa-spin"></i>
+                      <span>Buscando...</span>
+                    </div>
+                  ) : liveResults.length > 0 ? (
+                    <>
+                      {liveResults.map((product) => (
+                        <Link
+                          key={product.id}
+                          to={`/product/${product.id}`}
+                          className="search-result-item"
+                          onClick={() => {
+                            setShowDropdown(false);
+                            setSearchQuery("");
+                          }}
+                        >
+                          <img
+                            src={product.image || product.imagen}
+                            alt={product.title}
+                            className="search-result-image"
+                            onError={(e) => { e.target.src = '/assets/images/default.webp'; }}
+                          />
+                          <div className="search-result-info">
+                            <span className="search-result-name">{product.title || product.nombre}</span>
+                            <span className="search-result-category">{product.brand || product.category}</span>
+                          </div>
+                          <div className="search-result-price">{product.price || product.precio}</div>
+                        </Link>
+                      ))}
+                      <div
+                        className="search-view-all"
+                        onClick={executeSearch}
+                        style={{ padding: '10px', textAlign: 'center', fontSize: '13px', fontWeight: 'bold', color: '#495A72', cursor: 'pointer', borderTop: '1px solid #eee' }}
+                      >
+                        Ver todos los resultados
+                      </div>
+                    </>
+                  ) : (
+                    <div className="search-no-results">No se encontraron productos</div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
@@ -130,9 +192,9 @@ function Navbar({ onOpenCategories }) {
             {/* Menú de administración - solo visible para admin */}
             {isAdmin && (
               <div className="admin-menu-container" ref={adminMenuRef}>
-                <button 
-                  className="icon-btn admin-btn" 
-                  aria-label="Menú de administración" 
+                <button
+                  className="icon-btn admin-btn"
+                  aria-label="Menú de administración"
                   title="Admin"
                   onClick={() => setIsAdminMenuOpen(!isAdminMenuOpen)}
                 >
@@ -140,32 +202,32 @@ function Navbar({ onOpenCategories }) {
                 </button>
                 {isAdminMenuOpen && (
                   <div className="admin-dropdown-menu">
-                    <Link 
-                      to="/admin/productos" 
+                    <Link
+                      to="/admin/productos"
                       className="admin-dropdown-item"
                       onClick={() => setIsAdminMenuOpen(false)}
                     >
                       <i className="fa fa-box"></i>
                       <span>Productos</span>
                     </Link>
-                    <Link 
-                      to="/admin/usuarios" 
+                    <Link
+                      to="/admin/usuarios"
                       className="admin-dropdown-item"
                       onClick={() => setIsAdminMenuOpen(false)}
                     >
                       <i className="fa fa-users"></i>
                       <span>Usuarios</span>
                     </Link>
-                    <Link 
-                      to="/admin/ordenes-venta" 
+                    <Link
+                      to="/admin/ordenes-venta"
                       className="admin-dropdown-item"
                       onClick={() => setIsAdminMenuOpen(false)}
                     >
                       <i className="fa fa-shopping-cart"></i>
                       <span>Órdenes de Venta</span>
                     </Link>
-                    <Link 
-                      to="/admin/ordenes-compra" 
+                    <Link
+                      to="/admin/ordenes-compra"
                       className="admin-dropdown-item"
                       onClick={() => setIsAdminMenuOpen(false)}
                     >
@@ -176,13 +238,21 @@ function Navbar({ onOpenCategories }) {
                 )}
               </div>
             )}
-            <Link to="/auth" className="icon-btn user-btn" aria-label="Iniciar sesión" title="Perfil">
-              <i className="fa fa-user"></i>
-            </Link>
-            <button 
-              onClick={() => setIsCartDrawerOpen(true)} 
-              className="icon-btn cart-btn" 
-              aria-label="Abrir carrito" 
+            <div className="navbar-user-section">
+              {isAuthenticated && (
+                <div className="user-greeting">
+                  <span className="greeting-text">Hola,</span>
+                  <span className="user-name-label">{user?.name || user?.nombre || user?.email?.split('@')[0]}</span>
+                </div>
+              )}
+              <Link to="/auth" className="icon-btn user-btn" aria-label="Iniciar sesión" title="Perfil">
+                <i className="fa fa-user"></i>
+              </Link>
+            </div>
+            <button
+              onClick={() => setIsCartDrawerOpen(true)}
+              className="icon-btn cart-btn"
+              aria-label="Abrir carrito"
               title="Carrito"
             >
               <i className="fa fa-shopping-cart"></i>
@@ -191,11 +261,11 @@ function Navbar({ onOpenCategories }) {
           </div>
         </nav>
       </header>
-      
+
       {/* Cart Drawer */}
-      <CartDrawer 
-        isOpen={isCartDrawerOpen} 
-        onClose={() => setIsCartDrawerOpen(false)} 
+      <CartDrawer
+        isOpen={isCartDrawerOpen}
+        onClose={() => setIsCartDrawerOpen(false)}
       />
     </>
   );

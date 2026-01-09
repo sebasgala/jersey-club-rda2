@@ -82,5 +82,221 @@
       "last4": "3665"
     },
     "createdAt": "2026-01-08T08:16:27.437Z"
+  },
+  {
+    "id": "P13868",
+    "orderNumber": "JC-1767942526449-24N81",
+    "userId": 2,
+    "status": "pending",
+    "items": [
+      {
+        "id": "P39334",
+        "nombre": "Prueba ventana",
+        "precio": 20,
+        "cantidad": 1,
+        "imagen": "\\assets\\images\\premier-league"
+      }
+    ],
+    "total": 20,
+    "shippingData": {
+      "fullName": "Melany Freire",
+      "address": "Guayaquil, Ecuador",
+      "phone": "0888888888",
+      "email": "melany.freire@jerseyclub.ec",
+      "city": "Ecuador"
+    },
+    "paymentMethod": "tarjeta",
+    "createdAt": "2026-01-09T07:08:46.449Z",
+    "estado": "cancelado",
+    "notas": "",
+    "tipo": "venta",
+    "fecha": "2026-01-09T07:24:09.640Z",
+    "updatedAt": "2026-01-09T07:24:09.651Z"
+  },
+  {
+    "id": "P45675",
+    "orderNumber": "JC-1767942644375-KTRG5",
+    "userId": 3,
+    "status": "pending",
+    "items": [
+      {
+        "id": "P94238",
+        "nombre": "America 2026 local",
+        "precio": 50,
+        "cantidad": 1,
+        "imagen": "/assets/images/america-2026-local.webp"
+      }
+    ],
+    "total": 50,
+    "shippingData": {
+      "fullName": "Mathias Freire",
+      "address": "kennedy 2",
+      "phone": "099794111",
+      "email": "mathias.freire@jerseyclub.ec",
+      "city": "Ecuador"
+    },
+    "paymentMethod": "efectivo",
+    "createdAt": "2026-01-09T07:10:44.375Z",
+    "estado": "enviado",
+    "notas": "",
+    "tipo": "venta",
+    "fecha": "2026-01-09T07:24:01.201Z",
+    "updatedAt": "2026-01-09T07:24:01.208Z"
+  },
+  {
+    "id": "P95982",
+    "orderNumber": "JC-1767943039888-ZAHM8",
+    "userId": 3,
+    "status": "pending",
+    "items": [
+      {
+        "id": "P73364",
+        "nombre": "America 2025 local",
+        "precio": 80,
+        "cantidad": 1,
+        "imagen": "/assets/images/america-2025-visitante.webp"
+      },
+      {
+        "id": "P00029",
+        "nombre": "Fc Barcelona 1999 Local Retro",
+        "precio": 45,
+        "cantidad": 1,
+        "imagen": "/assets/images/fc-barcelona-1999-local-retro.webp"
+      }
+    ],
+    "total": 125,
+    "shippingData": {
+      "fullName": "Mathias Freire",
+      "address": "Dammer 2 y luis calisto",
+      "phone": "099794111",
+      "email": "mathias.freire@jerseyclub.ec",
+      "city": "Ecuador"
+    },
+    "paymentMethod": "efectivo",
+    "createdAt": "2026-01-09T07:17:19.888Z",
+    "estado": "completado",
+    "notas": "",
+    "tipo": "venta",
+    "fecha": "2026-01-09T07:23:52.522Z",
+    "updatedAt": "2026-01-09T07:23:52.529Z"
+  },
+  {
+    "id": "P68205",
+    "orderNumber": "JC-1767944266982-PZ7DA",
+    "userId": 2,
+    "status": "completado",
+    "estado": "completado",
+    "items": [
+      {
+        "id": "P32739",
+        "nombre": "3 Unidades",
+        "precio": 50,
+        "cantidad": 2,
+        "imagen": "/assets/images/america-2025-visitante.webp"
+      }
+    ],
+    "total": 100,
+    "shippingData": {
+      "fullName": "Melany Freire",
+      "address": "Guayaquil, Ecuador",
+      "phone": "0888888888",
+      "email": "melany.freire@jerseyclub.ec",
+      "city": "Ecuador"
+    },
+    "paymentMethod": "tarjeta",
+    "fecha": "2026-01-09T07:44:10.989Z",
+    "createdAt": "2026-01-09T07:37:46.982Z",
+    "tipo": "venta",
+    "notas": "",
+    "updatedAt": "2026-01-09T07:44:10.991Z"
+  },
+  {
+    "id": "P45602",
+    "orderNumber": "JC-1767944940924-RPB5V",
+    "userId": 2,
+    "status": "completado",
+    "estado": "completado",
+    "items": [
+      {
+        "id": "P95523",
+        "nombre": "5 unidades",
+        "precio": 80,
+        "cantidad": 3,
+        "imagen": "/assets/images/america-2025-visitante.webp"
+      }
+    ],
+    "total": 240,
+    "shippingData": {
+      "fullName": "Melany Freire",
+      "address": "Guayaquil, Ecuador",
+      "phone": "0888888888",
+      "email": "melany.freire@jerseyclub.ec",
+      "city": "Ecuador"
+    },
+    "paymentMethod": "tarjeta",
+    "fecha": "2026-01-09T07:50:45.065Z",
+    "createdAt": "2026-01-09T07:49:00.924Z",
+    "tipo": "venta",
+    "notas": "",
+    "updatedAt": "2026-01-09T07:50:45.068Z"
+  },
+  {
+    "id": "P17588",
+    "orderNumber": "JC-1767946774166-WUFO7",
+    "userId": "guest",
+    "status": "recibido",
+    "estado": "recibido",
+    "items": [
+      {
+        "id": "P95523",
+        "nombre": "5 unidades",
+        "cantidad": 3,
+        "precioCompra": 20,
+        "stockActual": 2
+      }
+    ],
+    "total": 60,
+    "shippingData": {
+      "fullName": "Proveedor: china 1",
+      "address": "Bodega Principal",
+      "city": "Quito",
+      "phone": "N/A",
+      "email": "N/A"
+    },
+    "paymentMethod": "Factura Transferencia",
+    "fecha": "2026-01-09T08:19:34.156Z",
+    "createdAt": "2026-01-09T08:19:34.166Z",
+    "tipo": "compra",
+    "notas": ""
+  },
+  {
+    "id": "P32152",
+    "orderNumber": "JC-1767947380697-007FX",
+    "userId": 2,
+    "status": "procesando",
+    "estado": "procesando",
+    "items": [
+      {
+        "id": "P19638",
+        "nombre": "20 unidades",
+        "precio": 20,
+        "cantidad": 4,
+        "imagen": "/assets/images/america-2025-visitante.webp"
+      }
+    ],
+    "total": 80,
+    "shippingData": {
+      "fullName": "Melany Freire",
+      "address": "Guayaquil, Ecuador",
+      "phone": "0999178775",
+      "email": "melany.freire@jerseyclub.ec",
+      "city": "Ecuador"
+    },
+    "paymentMethod": "transferencia",
+    "fecha": "2026-01-09T08:29:56.323Z",
+    "createdAt": "2026-01-09T08:29:40.697Z",
+    "tipo": "venta",
+    "notas": "",
+    "updatedAt": "2026-01-09T08:29:56.327Z"
   }
 ]

@@ -779,5 +779,38 @@
     "categoria": "Fútbol",
     "imagen": "/assets/images/america-2025-visitante.webp",
     "createdAt": "2026-01-08T13:01:24.492Z"
+  },
+  {
+    "id": "P32739",
+    "nombre": "3 Unidades",
+    "descripcion": "3",
+    "precio": 50,
+    "stock": 2,
+    "categoryId": "C00004",
+    "categoria": "Fútbol",
+    "imagen": "/assets/images/america-2025-visitante.webp",
+    "createdAt": "2026-01-09T07:36:57.730Z"
+  },
+  {
+    "id": "P95523",
+    "nombre": "5 unidades",
+    "descripcion": "5 ",
+    "precio": 80,
+    "stock": 5,
+    "categoryId": "C00005",
+    "categoria": "Fórmula 1",
+    "imagen": "/assets/images/america-2025-visitante.webp",
+    "createdAt": "2026-01-09T07:48:28.330Z"
+  },
+  {
+    "id": "P19638",
+    "nombre": "20 unidades",
+    "descripcion": "20",
+    "precio": 20,
+    "stock": 16,
+    "categoryId": "C00004",
+    "categoria": "Fútbol",
+    "imagen": "/assets/images/america-2025-visitante.webp",
+    "createdAt": "2026-01-09T08:27:38.485Z"
   }
 ]

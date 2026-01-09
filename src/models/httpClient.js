@@ -22,6 +22,12 @@ export const deleteProduct = async (id) => {
   return response.data;
 };
 
+// Actualizar un producto existente
+export const updateProduct = async (id, productData) => {
+  const response = await axios.put(`${API_URL}/productos/${id}`, productData);
+  return response.data;
+};
+
 // Obtener producto por ID
 export const getProductById = async (id) => {
   const response = await axios.get(`${API_URL}/productos/${id}`);
@@ -88,14 +94,36 @@ export const deleteOrden = async (id) => {
 
 // Obtener órdenes de compra
 export const getOrdenesCompra = async () => {
-  const response = await axios.get(`${API_URL}/ordenes/compra`);
-  return response.data;
+  try {
+    const response = await axios.get(`${API_URL}/ordenes/compra`);
+    return response.data;
+  } catch (error) {
+    // Si da 404, el servidor tal vez no tiene la ruta filtrada.
+    // Hacemos el fallback filtrando manualmente.
+    if (error.response?.status === 404) {
+      console.warn('⚠️ Endpoint /ordenes/compra no encontrado. Aplicando filtro local.');
+      const all = await getOrdenes();
+      const ordersArray = Array.isArray(all.data) ? all.data : (Array.isArray(all) ? all : []);
+      return { success: true, data: ordersArray.filter(o => o.tipo === 'compra') };
+    }
+    throw error;
+  }
 };
 
 // Obtener órdenes de venta
 export const getOrdenesVenta = async () => {
-  const response = await axios.get(`${API_URL}/ordenes/venta`);
-  return response.data;
+  try {
+    const response = await axios.get(`${API_URL}/ordenes/venta`);
+    return response.data;
+  } catch (error) {
+    if (error.response?.status === 404) {
+      console.warn('⚠️ Endpoint /ordenes/venta no encontrado. Aplicando filtro local.');
+      const all = await getOrdenes();
+      const ordersArray = Array.isArray(all.data) ? all.data : (Array.isArray(all) ? all : []);
+      return { success: true, data: ordersArray.filter(o => o.tipo === 'venta') };
+    }
+    throw error;
+  }
 };
 
 // ==================== PRODUCTOS POR CATEGORÍA ====================
