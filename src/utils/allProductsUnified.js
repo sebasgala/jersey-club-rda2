@@ -37,6 +37,18 @@ const normalizeProduct = (product, index, source, category) => {
   const rawPrice = product.precio !== undefined ? product.precio : product.price;
   let numericPrice = 0;
 
+  // DEBUG: Log price parsing
+  if (source === 'db') {
+    console.log('💰 [PRICE DEBUG]', {
+      id: product.id || product.id_producto,
+      nombre: product.nombre,
+      'product.precio': product.precio,
+      'product.price': product.price,
+      'rawPrice': rawPrice,
+      'rawPrice type': typeof rawPrice
+    });
+  }
+
   if (typeof rawPrice === 'number') {
     numericPrice = rawPrice;
   } else if (typeof rawPrice === 'string') {
@@ -44,6 +56,11 @@ const normalizeProduct = (product, index, source, category) => {
   }
 
   const formattedPrice = `$${numericPrice.toFixed(2)}`;
+
+  // DEBUG: Log final price
+  if (source === 'db') {
+    console.log('💰 [PRICE RESULT]', { numericPrice, formattedPrice });
+  }
 
   // Campos para filtrado
   // Si NO tiene la propiedad definida, asignamos un 25% de probabilidad de oferta de forma pseudo-aleatoria pero consistente
@@ -120,8 +137,20 @@ export const searchProducts = async (searchTerm) => {
     if (result.success || result.status === 'success') {
       const apiProducts = result.data;
 
+      // DEBUG: Log first product from API
+      if (apiProducts.length > 0) {
+        console.log('🔍 [SEARCH DEBUG] First product from API:', apiProducts[0]);
+      }
+
       // Normalizar productos de la API
-      allProducts = apiProducts.map((p, i) => normalizeProduct(p, i, p.source || 'db', p.categoria || 'General'));
+      allProducts = apiProducts.map((p, i) => {
+        const normalized = normalizeProduct(p, i, p.source || 'db', p.categoria || 'General');
+        // DEBUG: Log first normalized product
+        if (i === 0) {
+          console.log('🔍 [SEARCH DEBUG] First normalized product:', normalized);
+        }
+        return normalized;
+      });
     } else {
       // Si falla la API, usar datos locales como fallback
       allProducts = getAllProductsUnified();
