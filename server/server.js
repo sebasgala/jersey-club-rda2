@@ -23,9 +23,8 @@ dotenv.config();
 
 const app = express();
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const IMAGES_DIR = path.join(__dirname, '../public/assets/images');
+const __dirname = path.resolve();
+const IMAGES_DIR = path.join(__dirname, 'public/assets/images');
 
 const generateImagePath = (name) => {
   if (!name) return 'https://storage.googleapis.com/imagenesjerseyclub/default.webp';
