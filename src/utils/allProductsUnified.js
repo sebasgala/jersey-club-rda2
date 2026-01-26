@@ -33,7 +33,8 @@ const normalizeProduct = (product, index, source, category) => {
   const image = product.imagen || product.image || "https://storage.googleapis.com/imagenesjerseyclub/gs://imagenesjerseyclub/default.webp";
 
   // Formatear precio para asegurar que tenga el signo $ y dos decimales
-  const rawPrice = product.price || product.precio;
+  // Prioridad: precio (número de backend) > price (string de frontend)
+  const rawPrice = product.precio !== undefined ? product.precio : product.price;
   let numericPrice = 0;
 
   if (typeof rawPrice === 'number') {
@@ -49,7 +50,7 @@ const normalizeProduct = (product, index, source, category) => {
   const randomSale = (index % 4 === 0);
   const isOnSale = product.isOnSale !== undefined ? product.isOnSale : randomSale;
 
-  const discount = product.discount || (isOnSale ? (15 + (index % 4) * 5) : 0);
+  const discount = product.descuento || product.discount || (isOnSale ? (15 + (index % 4) * 5) : 0);
 
   return {
     ...product,
@@ -61,7 +62,7 @@ const normalizeProduct = (product, index, source, category) => {
     image,
     imagen: image,
     brand: product.brand || product.team || category,
-    category: product.category || category,
+    category: product.categoria || product.category || category,
     source, // 'fb' = fútbol, 'f1' = fórmula 1, 'jcb' = jersey club, 'db' = backend
     // Campos para filtrado
     isOnSale: isOnSale,

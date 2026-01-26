@@ -171,15 +171,23 @@ function Navbar({ onOpenCategories }) {
                           <div className="search-result-price-container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '2px' }}>
                             <div className="search-result-price" style={{ fontWeight: 'bold', color: '#B12704' }}>
                               {(() => {
-                                const p = product.price || product.precio;
-                                if (p === undefined || p === null) return "$0.00";
-                                const numeric = typeof p === 'number' ? p : parseFloat(String(p).replace('$', '').replace(',', '')) || 0;
+                                // Prioridad: precio (número del backend) > price (string formateado)
+                                const precioNum = product.precio;
+                                const priceStr = product.price;
+
+                                let numeric = 0;
+                                if (typeof precioNum === 'number') {
+                                  numeric = precioNum;
+                                } else if (priceStr !== undefined && priceStr !== null) {
+                                  numeric = typeof priceStr === 'number' ? priceStr : parseFloat(String(priceStr).replace('$', '').replace(',', '')) || 0;
+                                }
+
                                 return `$${numeric.toFixed(2)}`;
                               })()}
                             </div>
                             {(product.isOnSale || product.onSale) && (
                               <span className="search-result-discount" style={{ fontSize: '10px', color: '#CC0C39', fontWeight: 'bold', background: '#FFF0F0', padding: '1px 4px', borderRadius: '3px' }}>
-                                -{product.discount || 20}%
+                                -{product.descuento || product.discount || 20}%
                               </span>
                             )}
                           </div>
