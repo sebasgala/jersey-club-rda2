@@ -2,6 +2,17 @@ import axios from 'axios';
 
 const API_URL = process.env.REACT_APP_API_URL || '/api';
 
+// Configurar interceptor para incluir el token en cada solicitud
+axios.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+}, (error) => {
+  return Promise.reject(error);
+});
+
 // ==================== PRODUCTOS ====================
 
 // Obtener todos los productos
