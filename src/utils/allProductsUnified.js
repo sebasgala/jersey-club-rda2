@@ -113,7 +113,7 @@ export const searchProducts = async (searchTerm) => {
 
   try {
     // Intentar obtener productos actualizados desde el backend
-    const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5001/api'}/productos`);
+    const response = await fetch(`${process.env.REACT_APP_API_URL || '/api'}/productos`);
     const result = await response.json();
 
     if (result.success || result.status === 'success') {

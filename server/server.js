@@ -352,7 +352,12 @@ app.get('/api/ordenes', requireAuth, async (req, res) => {
 
 // INICIAR SERVIDOR
 const PORT = process.env.PORT || 5002;
-app.listen(PORT, () => {
-  console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
-  console.log('✅ Integrado con PostgreSQL mediante Prisma');
-});
+
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(PORT, () => {
+    console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
+    console.log('✅ Integrado con PostgreSQL mediante Prisma');
+  });
+}
+
+export default app;

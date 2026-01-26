@@ -36,7 +36,7 @@ const POS = () => {
     // ========= API CALLS =========
     const fetchProducts = useCallback(async () => {
         try {
-            const response = await fetch('http://localhost:5001/api/productos', {
+            const response = await fetch('/api/productos', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const data = await response.json();
@@ -101,7 +101,7 @@ const POS = () => {
 
     const registerCustomer = async (customerData) => {
         try {
-            const response = await fetch('http://localhost:5001/api/clientes', {
+            const response = await fetch('/api/clientes', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -142,7 +142,7 @@ const POS = () => {
         };
 
         try {
-            const response = await fetch('http://localhost:5001/api/ordenes', {
+            const response = await fetch('/api/ordenes', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
