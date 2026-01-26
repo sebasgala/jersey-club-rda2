@@ -44,7 +44,7 @@
     "db:setup": "npm run prisma:generate && npm run prisma:migrate && npm run prisma:seed",
     "db:diagnose": "node -e \"require('dotenv').config(); console.log('🌐 [DIAGNOSTIC] DATABASE_URL presence:', process.env.DATABASE_URL ? 'YES (Length: ' + process.env.DATABASE_URL.length + ')' : 'NO'); if (process.env.DATABASE_URL) { const masked = process.env.DATABASE_URL.replace(/:([^:@]+)@/, ':****@'); console.log('🌐 [DIAGNOSTIC] Masked URL:', masked); }\"",
     "update-products": "node scripts/updateProducts.js",
-    "postinstall": "prisma generate"
+    "postinstall": "node -e \"const fs=require('fs'); fs.rmSync('node_modules/.prisma', {recursive:true, force:true})\" && prisma generate"
   },
   "prisma": {
     "schema": "prisma/schema.prisma",
