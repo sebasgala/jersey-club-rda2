@@ -10,10 +10,8 @@ const corsOptions = {
 
     const NODE_ENV = process.env.NODE_ENV || 'development';
 
-    // En desarrollo, permitir cualquier origen
-    if (NODE_ENV !== 'production') {
-      return callback(null, true);
-    }
+    // En desarrollo y producción por ahora, permitir cualquier origen
+    return callback(null, true);
 
     // Lista de orígenes permitidos en producción
     const allowedOrigins = [

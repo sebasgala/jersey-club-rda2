@@ -9,6 +9,8 @@ import productosController from './controllers/productos.controller.js';
 import { corsMiddleware } from './middleware/cors.js';
 import requireAuth from './middleware/requireAuth.js';
 import { validators } from './middleware/validator.js';
+import prisma from './lib/prisma.js';
+import { logAudit, generateNextId, handlePrismaError } from './lib/dbHelpers.js';
 
 // Load environment variables
 dotenv.config();
@@ -117,11 +119,21 @@ app.put('/api/usuarios/:id', requireAuth, authController.updateUser);
 app.delete('/api/usuarios/:id', requireAuth, authController.deleteUser);
 
 // =====================================================
-// RUTAS DE PRODUCTOS
+// RUTAS DE DIAGNÓSTICO
 // =====================================================
 
-import prisma from './lib/prisma.js';
-import { logAudit, generateNextId, handlePrismaError } from './lib/dbHelpers.js';
+app.get('/api/health', async (req, res) => {
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    res.json({ status: 'ok', database: 'connected', timestamp: new Date() });
+  } catch (error) {
+    res.status(500).json({ status: 'error', database: 'disconnected', error: error.message });
+  }
+});
+
+// =====================================================
+// RUTAS DE PRODUCTOS
+// =====================================================
 
 // GET /api/productos - Obtener todos los productos (con soporte para filtros)
 app.get('/api/productos', async (req, res) => {
