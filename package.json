@@ -40,18 +40,18 @@
     "server": "node server/index.js",
     "server:dev": "nodemon server/index.js",
     "dev": "concurrently \"npm start\" \"npm run server\"",
-    "prisma:generate": "prisma generate --schema=server/prisma/schema.prisma",
-    "prisma:migrate": "prisma migrate dev --schema=server/prisma/schema.prisma",
-    "prisma:seed": "node server/prisma/seed.js",
-    "prisma:studio": "prisma studio --schema=server/prisma/schema.prisma",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:seed": "node prisma/seed.js",
+    "prisma:studio": "prisma studio",
     "db:setup": "npm run prisma:generate && npm run prisma:migrate && npm run prisma:seed",
     "db:diagnose": "node -e \"require('dotenv').config(); console.log('🌐 [DIAGNOSTIC] DATABASE_URL presence:', process.env.DATABASE_URL ? 'YES (Length: ' + process.env.DATABASE_URL.length + ')' : 'NO'); if (process.env.DATABASE_URL) { const masked = process.env.DATABASE_URL.replace(/:([^:@]+)@/, ':****@'); console.log('🌐 [DIAGNOSTIC] Masked URL:', masked); }\"",
     "update-products": "node scripts/updateProducts.js",
-    "postinstall": "npm run prisma:generate"
+    "postinstall": "prisma generate"
   },
   "prisma": {
-    "schema": "server/prisma/schema.prisma",
-    "seed": "node server/prisma/seed.js"
+    "schema": "prisma/schema.prisma",
+    "seed": "node prisma/seed.js"
   },
   "eslintConfig": {
     "extends": [
