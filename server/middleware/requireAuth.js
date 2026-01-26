@@ -21,6 +21,7 @@ const requireAuth = (req, res, next) => {
     req.user = payload; // At least { id, rol }
     next();
   } catch (err) {
+    console.error('❌ [AUTH_ERROR] Token Verification Failed:', err.message);
     const error = new Error('Token inválido');
     error.status = 401;
     return next(error);
