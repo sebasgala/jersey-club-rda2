@@ -1,4 +1,7 @@
 import { PrismaClient } from '@prisma/client';
+import dotenv from 'dotenv';
+dotenv.config();
+
 const prisma = new PrismaClient();
 async function test() {
     try {
@@ -9,7 +12,8 @@ async function test() {
         const firstProd = await prisma.producto.findFirst({ include: { categoria: true } });
         console.log('🏷️ FIRST PRODUCT CAT:', firstProd?.categoria?.cat_nombre, 'ID_CAT:', firstProd?.id_categoria);
     } catch (e) {
-        console.error('❌ CONNECTION FAILED:', e);
+        console.error('❌ CONNECTION FAILED:');
+        console.error(e);
     } finally {
         await prisma.$disconnect();
     }

@@ -12,7 +12,8 @@ export default function authenticate(req, res, next) {
   const token = authHeader.split(" ")[1];
 
   try {
-    const payload = jwt.verify(token, process.env.JWT_SECRET);
+    const secret = process.env.JWT_SECRET || 'default-secret-key-change-in-production';
+    const payload = jwt.verify(token, secret);
     req.user = payload; // { id, rol }
     next();
   } catch (error) {

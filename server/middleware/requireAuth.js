@@ -14,7 +14,8 @@ const requireAuth = (req, res, next) => {
 
   try {
     // Verify the JWT
-    const payload = jwt.verify(token, process.env.JWT_SECRET);
+    const secret = process.env.JWT_SECRET || 'default-secret-key-change-in-production';
+    const payload = jwt.verify(token, secret);
 
     // Attach user payload to the request
     req.user = payload; // At least { id, rol }

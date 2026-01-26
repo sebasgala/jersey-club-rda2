@@ -137,7 +137,7 @@ export async function listarProductosPorCategoria(req, res, next) {
     const productos = await prisma.producto.findMany({
       where: {
         id_categoria: {
-          startsWith: id.trim()
+          contains: id.trim()
         }
       },
       include: {
