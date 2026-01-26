@@ -11,7 +11,7 @@ import { useCart } from '../context/CartContext';
  */
 export default function OrderSummary({ compact = false, onCheckout }) {
   const { getCartTotal, getCartCount, cartItems } = useCart();
-  
+
   const totals = getCartTotal();
   const itemCount = getCartCount();
   const isEmpty = cartItems.length === 0;
@@ -22,9 +22,11 @@ export default function OrderSummary({ compact = false, onCheckout }) {
       <div className="bg-gray-50 rounded-lg p-4 space-y-3">
         <div className="flex justify-between text-sm">
           <span className="text-gray-600">Subtotal ({itemCount} artículos)</span>
-          <span className="font-semibold text-gray-900">${totals.subtotal}</span>
+          <span className="font-semibold text-gray-900">
+            {`$${(parseFloat(String(totals.subtotal || 0).replace('$', '').replace(',', '')) || 0).toFixed(2)}`}
+          </span>
         </div>
-        
+
         <div className="flex gap-2">
           <Link
             to="/cart"
@@ -34,11 +36,10 @@ export default function OrderSummary({ compact = false, onCheckout }) {
           </Link>
           <Link
             to="/payment"
-            className={`flex-1 text-center py-2 px-4 rounded-lg text-sm font-medium transition-colors ${
-              isEmpty 
-                ? 'bg-gray-300 text-gray-500 cursor-not-allowed pointer-events-none' 
+            className={`flex-1 text-center py-2 px-4 rounded-lg text-sm font-medium transition-colors ${isEmpty
+                ? 'bg-gray-300 text-gray-500 cursor-not-allowed pointer-events-none'
                 : 'bg-[#BF1919] text-white hover:bg-[#a81616]'
-            }`}
+              }`}
           >
             Checkout
           </Link>
@@ -58,7 +59,9 @@ export default function OrderSummary({ compact = false, onCheckout }) {
         {/* Subtotal */}
         <div className="flex justify-between text-sm">
           <span className="text-gray-600">Subtotal ({itemCount} artículos)</span>
-          <span className="font-medium text-gray-900">${totals.subtotal}</span>
+          <span className="font-medium text-gray-900">
+            {`$${(parseFloat(String(totals.subtotal || 0).replace('$', '').replace(',', '')) || 0).toFixed(2)}`}
+          </span>
         </div>
 
         {/* Envío */}
@@ -77,7 +80,7 @@ export default function OrderSummary({ compact = false, onCheckout }) {
             </div>
           </div>
           <span className={`font-medium ${totals.freeShipping ? 'text-[#007600]' : 'text-gray-900'}`}>
-            {totals.freeShipping ? 'GRATIS' : `$${totals.shipping}`}
+            {totals.freeShipping ? 'GRATIS' : `$${(parseFloat(String(totals.shipping || 0).replace('$', '').replace(',', '')) || 0).toFixed(2)}`}
           </span>
         </div>
 
@@ -89,7 +92,7 @@ export default function OrderSummary({ compact = false, onCheckout }) {
             </p>
             {/* Barra de progreso */}
             <div className="mt-2 w-full bg-gray-200 rounded-full h-1.5">
-              <div 
+              <div
                 className="bg-[#007600] h-1.5 rounded-full transition-all duration-300"
                 style={{ width: `${Math.min((parseFloat(totals.subtotal) / totals.freeShippingThreshold) * 100, 100)}%` }}
               ></div>
@@ -111,7 +114,9 @@ export default function OrderSummary({ compact = false, onCheckout }) {
               </div>
             </div>
           </div>
-          <span className="font-medium text-gray-900">${totals.taxes}</span>
+          <span className="font-medium text-gray-900">
+            {`$${(parseFloat(String(totals.taxes || 0).replace('$', '').replace(',', '')) || 0).toFixed(2)}`}
+          </span>
         </div>
 
         {/* Línea divisora */}
@@ -119,7 +124,9 @@ export default function OrderSummary({ compact = false, onCheckout }) {
           {/* Total */}
           <div className="flex justify-between text-base font-bold">
             <span className="text-[#0F1111]">Total del pedido</span>
-            <span className="text-[#B12704] text-xl">${totals.total}</span>
+            <span className="text-[#B12704] text-xl">
+              {`$${(parseFloat(String(totals.total || 0).replace('$', '').replace(',', '')) || 0).toFixed(2)}`}
+            </span>
           </div>
         </div>
       </div>
@@ -134,11 +141,10 @@ export default function OrderSummary({ compact = false, onCheckout }) {
           }
           if (onCheckout) onCheckout();
         }}
-        className={`mt-6 w-full flex items-center justify-center py-3 px-4 rounded-full font-medium text-white transition-all shadow-sm ${
-          isEmpty 
-            ? 'bg-gray-400 cursor-not-allowed' 
+        className={`mt-6 w-full flex items-center justify-center py-3 px-4 rounded-full font-medium text-white transition-all shadow-sm ${isEmpty
+            ? 'bg-gray-400 cursor-not-allowed'
             : 'bg-[#BF1919] hover:bg-[#a81616]'
-        }`}
+          }`}
       >
         Proceder al pago
       </Link>

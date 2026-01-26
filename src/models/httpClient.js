@@ -141,3 +141,9 @@ export const loginUser = async ({ email, password }) => {
   const response = await axios.post(`${API_URL}/auth/login`, { email, password });
   return response.data; // Devuelve { user, token }
 };
+
+// Función para registrar usuario
+export const registerUser = async (userData) => {
+  const response = await axios.post(`${API_URL}/auth/register`, userData);
+  return response.data; // Devuelve { success, message, data: { user, token } }
+};

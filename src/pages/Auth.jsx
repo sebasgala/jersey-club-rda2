@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import {
   loginUser
@@ -16,17 +16,10 @@ import { useAuth } from '../context/AuthContext';
  * - Preparado para conectar con backend
  * - 100% responsivo
  * - Accesible (labels, focus states, etc.)
- * 
- * Para conectar con backend:
- * - Modificar la función handleLogin() para hacer fetch
- * - Agregar manejo de tokens/sesión según tu auth strategy
  */
 
 // ==================== VALIDACIONES ====================
 
-/**
- * Valida formato de email
- */
 const validateEmail = (email) => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!email) return 'El correo electrónico es requerido';
@@ -34,9 +27,6 @@ const validateEmail = (email) => {
   return '';
 };
 
-/**
- * Valida password (mínimo 8 caracteres, al menos una mayúscula y un número)
- */
 const validatePassword = (password) => {
   if (!password) return 'La contraseña es requerida';
   if (password.length < 8) return 'La contraseña debe tener al menos 8 caracteres';
@@ -52,22 +42,18 @@ export default function Auth() {
   const location = useLocation();
   const { isAuthenticated, user, logout, login } = useAuth();
 
-  // Obtener la ruta de origen para redirigir después del login
   const from = location.state?.from || '/';
 
-  // Estado del formulario
   const [formData, setFormData] = useState({
     email: '',
     password: ''
   });
 
-  // Estado de errores
   const [errors, setErrors] = useState({
     email: '',
     password: ''
   });
 
-  // Estado de UI
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [submitError, setSubmitError] = useState('');
@@ -76,106 +62,67 @@ export default function Auth() {
     password: false
   });
 
-  // ==================== HANDLERS ====================
+  // Resetear formulario cada vez que se accede a la página
+  useEffect(() => {
+    setFormData({ email: '', password: '' });
+    setErrors({ email: '', password: '' });
+    setTouched({ email: false, password: false });
+    setSubmitError('');
+    setIsLoading(false);
+  }, [location.pathname]);
 
-  /**
-   * Actualiza el campo y valida en tiempo real
-   */
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-
-    // Limpiar error de submit
     if (submitError) setSubmitError('');
-
-    // Validar solo si el campo ya fue tocado
     if (touched[name]) {
       const error = name === 'email' ? validateEmail(value) : validatePassword(value);
       setErrors(prev => ({ ...prev, [name]: error }));
     }
   };
 
-  /**
-   * Marca campo como tocado y valida
-   */
   const handleBlur = (e) => {
     const { name, value } = e.target;
     setTouched(prev => ({ ...prev, [name]: true }));
-
     const error = name === 'email' ? validateEmail(value) : validatePassword(value);
     setErrors(prev => ({ ...prev, [name]: error }));
   };
 
-  /**
-   * Valida todo el formulario
-   */
   const validateForm = () => {
     const emailError = validateEmail(formData.email);
     const passwordError = validatePassword(formData.password);
-
     setErrors({ email: emailError, password: passwordError });
     setTouched({ email: true, password: true });
-
     return !emailError && !passwordError;
   };
 
-  /**
-   * 🔌 PLACEHOLDER PARA BACKEND
-   * 
-   * Esta función simula el login. Para conectar con tu backend:
-   * 1. Reemplaza el setTimeout por un fetch/axios
-   * 2. Ejemplo:
-   *    const response = await fetch('/api/auth/login', {
-   *      method: 'POST',
-   *      headers: { 'Content-Type': 'application/json' },
-   *      body: JSON.stringify(values)
-   *    });
-   *    const data = await response.json();
-   *    if (!response.ok) throw new Error(data.message);
-   *    // Guardar token, redirigir, etc.
-   */
   const handleLogin = async (values) => {
-    // Llamar al backend real usando loginUser
     const response = await loginUser(values);
-
-    // El backend devuelve { success: true, message: '...', data: { user, token } }
     if (!response.success) {
       throw new Error(response.message || 'Error al iniciar sesión');
     }
-
     const { token, user } = response.data;
-    // Retornamos los datos para que el handleSubmit use el login del contexto
     return { success: true, user, token };
   };
 
-  /**
-   * Maneja el envío del formulario
-   */
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // Validar formulario
     if (!validateForm()) return;
-
     setIsLoading(true);
     setSubmitError('');
-
     try {
       const result = await handleLogin(formData);
-      // USAR LOGIN DEL CONTEXTO (Esto dispara la actualización inmediata en el Navbar)
       login(result.user, result.token);
-
-      // Redirigir al usuario a la página de origen o al home
       navigate(from, { replace: true });
     } catch (error) {
       setSubmitError(error.message || 'Error al iniciar sesión. Intenta de nuevo.');
     } finally {
       setIsLoading(false);
+      setFormData({ email: '', password: '' });
+      setErrors({ email: '', password: '' });
+      setTouched({ email: false, password: false });
     }
   };
-
-  // ==================== RENDER ====================
-
 
   if (isAuthenticated) {
     return (
@@ -190,7 +137,6 @@ export default function Auth() {
               </div>
               <h1 className="text-xl font-bold text-gray-900 mb-2">¡Hola, {user?.name || user?.nombre}!</h1>
               <p className="text-sm text-gray-500 mb-6">Has iniciado sesión como <br /><strong>{user?.email}</strong></p>
-
               <div className="space-y-3">
                 <button
                   onClick={() => navigate('/')}
@@ -216,16 +162,14 @@ export default function Auth() {
   }
 
   return (
-    <div className="min-h-screen w-full bg-gray-50 flex flex-col pt-20 sm:pt-24">
-      {/* Main Content */}
-      <main className="flex-1 flex items-center justify-center px-4 py-8 sm:py-12">
+    <div className="min-h-screen w-full bg-gray-50 flex flex-col pt-16 sm:pt-20 overflow-y-auto">
+      <main className="flex-1 flex items-center justify-center px-4 py-2 sm:py-4">
         <div className="w-full max-w-sm">
-
           {/* Logo */}
-          <div className="flex justify-center mb-6">
+          <div className="flex justify-center mb-4">
             <Link to="/" className="block">
               <img
-                src="/assets/images/logo.webp"
+                src="https://storage.googleapis.com/imagenesjerseyclub/logo.webp"
                 alt="Jersey Club EC"
                 className="h-10 sm:h-12 w-auto"
               />
@@ -233,14 +177,11 @@ export default function Auth() {
           </div>
 
           {/* Card de Login */}
-          <div className="bg-white rounded-lg border border-gray-300 p-5 sm:p-6 shadow-sm">
-
-            {/* Título */}
-            <h1 className="text-2xl sm:text-[28px] font-normal text-[#0F1111] mb-5">
+          <div className="bg-white rounded-lg border border-gray-300 p-4 sm:p-5 shadow-sm">
+            <h1 className="text-xl sm:text-2xl font-normal text-[#0F1111] mb-4">
               Iniciar sesión
             </h1>
 
-            {/* Error general */}
             {submitError && (
               <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
                 <div className="flex items-start gap-2">
@@ -252,15 +193,9 @@ export default function Auth() {
               </div>
             )}
 
-            {/* Formulario */}
             <form onSubmit={handleSubmit} noValidate>
-
-              {/* Email */}
-              <div className="mb-4">
-                <label
-                  htmlFor="email"
-                  className="block text-sm font-bold text-[#0F1111] mb-1"
-                >
+              <div className="mb-3">
+                <label htmlFor="email" className="block text-sm font-bold text-[#0F1111] mb-1">
                   Correo electrónico
                 </label>
                 <input
@@ -271,16 +206,12 @@ export default function Auth() {
                   onChange={handleChange}
                   onBlur={handleBlur}
                   placeholder="tu@email.com"
-                  autoComplete="email"
+                  autoComplete="off"
                   disabled={isLoading}
-                  className={`
-                    w-full px-3 py-2 text-sm border rounded-[3px] outline-none transition-all
-                    ${errors.email && touched.email
+                  className={`w-full px-3 py-2 text-sm border rounded-[3px] outline-none transition-all ${errors.email && touched.email
                       ? 'border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-200'
                       : 'border-gray-400 focus:border-[#e77600] focus:ring-2 focus:ring-[#f3d078]'
-                    }
-                    ${isLoading ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'}
-                  `}
+                    } ${isLoading ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'}`}
                 />
                 {errors.email && touched.email && (
                   <p className="mt-1 text-xs text-red-600 flex items-center gap-1">
@@ -292,19 +223,12 @@ export default function Auth() {
                 )}
               </div>
 
-              {/* Password */}
-              <div className="mb-5">
+              <div className="mb-4">
                 <div className="flex items-center justify-between mb-1">
-                  <label
-                    htmlFor="password"
-                    className="block text-sm font-bold text-[#0F1111]"
-                  >
+                  <label htmlFor="password" className="block text-sm font-bold text-[#0F1111]">
                     Contraseña
                   </label>
-                  <Link
-                    to="#"
-                    className="text-xs text-[#0066c0] hover:text-[#c45500] hover:underline"
-                  >
+                  <Link to="#" className="text-xs text-[#0066c0] hover:text-[#c45500] hover:underline">
                     ¿Olvidaste tu contraseña?
                   </Link>
                 </div>
@@ -317,16 +241,12 @@ export default function Auth() {
                     onChange={handleChange}
                     onBlur={handleBlur}
                     placeholder="Mínimo 8 caracteres"
-                    autoComplete="current-password"
+                    autoComplete="new-password"
                     disabled={isLoading}
-                    className={`
-                      w-full px-3 py-2 pr-10 text-sm border rounded-[3px] outline-none transition-all
-                      ${errors.password && touched.password
+                    className={`w-full px-3 py-2 pr-10 text-sm border rounded-[3px] outline-none transition-all ${errors.password && touched.password
                         ? 'border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-200'
                         : 'border-gray-400 focus:border-[#e77600] focus:ring-2 focus:ring-[#f3d078]'
-                      }
-                      ${isLoading ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'}
-                    `}
+                      } ${isLoading ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'}`}
                   />
                   <button
                     type="button"
@@ -337,7 +257,7 @@ export default function Auth() {
                   >
                     {showPassword ? (
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268-2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
                       </svg>
                     ) : (
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -357,90 +277,53 @@ export default function Auth() {
                 )}
               </div>
 
-              {/* Botón Submit */}
               <button
                 type="submit"
                 disabled={isLoading}
-                className={`
-                  w-full py-2 px-4 text-sm font-medium rounded-[3px] border
-                  transition-all duration-150
-                  ${isLoading
+                className={`w-full py-2 px-4 text-sm font-medium rounded-[3px] border transition-all duration-150 ${isLoading
                     ? 'bg-gray-200 border-gray-300 text-gray-500 cursor-not-allowed'
                     : 'bg-[#BF1919] text-white hover:bg-[#a81414] active:bg-[#8f1212]'
-                  }
-                  focus:outline-none focus:ring-2 focus:ring-[#f3d078]
-                `}
+                  } focus:outline-none focus:ring-2 focus:ring-[#f3d078]`}
               >
-                {isLoading ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                    </svg>
-                    Iniciando sesión...
-                  </span>
-                ) : (
-                  'Iniciar sesión'
-                )}
+                {isLoading ? 'Iniciando sesión...' : 'Iniciar sesión'}
               </button>
             </form>
 
-            {/* Términos */}
-            <p className="mt-4 text-xs text-[#555] leading-relaxed">
+            <p className="mt-3 text-xs text-[#555] leading-relaxed">
               Al continuar, aceptas las{' '}
-              <Link to="#" className="text-[#0066c0] hover:text-[#c45500] hover:underline">
-                Condiciones de Uso
-              </Link>{' '}
-              y el{' '}
-              <Link to="#" className="text-[#0066c0] hover:text-[#c45500] hover:underline">
-                Aviso de Privacidad
-              </Link>{' '}
-              de Jersey Club EC.
+              <Link to="#" className="text-[#0066c0] hover:text-[#c45500] hover:underline">Condiciones de Uso</Link> y el <Link to="#" className="text-[#0066c0] hover:text-[#c45500] hover:underline">Aviso de Privacidad</Link> de Jersey Club EC.
             </p>
-
-            {/* Divider */}
-            {/* Eliminado el texto "o continúa con" y los botones sociales de Google y GitHub */}
-
           </div>
 
-          {/* Divider para crear cuenta */}
-          <div className="relative my-5">
+          <div className="relative my-3">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-gray-300"></div>
             </div>
             <div className="relative flex justify-center">
-              <span className="bg-gray-50 px-3 text-xs text-gray-500">
-                ¿Eres nuevo en Jersey Club?
-              </span>
+              <span className="bg-gray-50 px-3 text-xs text-gray-500">¿Eres nuevo en Jersey Club?</span>
             </div>
           </div>
 
-          {/* Botón crear cuenta */}
           <Link
             to="/register"
-            className="block w-full py-2 px-4 text-sm font-medium text-center text-white bg-[#495A72] border border-[#495A72] rounded-[3px] hover:bg-[#3b4d63] transition-all"
+            className="block w-full py-2 px-4 text-sm font-medium text-center text-white bg-[#BF1919] border border-[#BF1919] rounded-[3px] mt-2 hover:bg-[#a81414] transition-all"
           >
             Crear tu cuenta de Jersey Club
           </Link>
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="py-6 text-center border-t border-gray-200 bg-gradient-to-b from-transparent to-[#f5f5f5]">
-        <div className="flex items-center justify-center gap-4 text-xs text-[#555] mb-2">
-          <Link to="#" className="text-[#0066c0] hover:text-[#c45500] hover:underline">
-            Condiciones de uso
-          </Link>
-          <Link to="#" className="text-[#0066c0] hover:text-[#c45500] hover:underline">
-            Aviso de privacidad
-          </Link>
-          <Link to="/contacto" className="text-[#0066c0] hover:text-[#c45500] hover:underline">
-            Ayuda
-          </Link>
+      <footer className="py-4 text-center border-t border-gray-200 bg-white shadow-[0_-1px_10px_rgba(0,0,0,0.02)]">
+        <div className="max-w-screen-xl mx-auto px-4">
+          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs font-medium text-gray-500 mb-4">
+            <Link to="/informacion" className="hover:text-[#BF1919] hover:underline transition-colors">Condiciones de uso</Link>
+            <Link to="/privacidad" className="hover:text-[#BF1919] hover:underline transition-colors">Aviso de privacidad</Link>
+            <Link to="/contacto" className="hover:text-[#BF1919] hover:underline transition-colors">Ayuda</Link>
+          </div>
+          <p className="text-[11px] text-gray-400 tracking-wide">
+            © 2024-2026 Jersey Club EC. Todos los derechos reservados.
+          </p>
         </div>
-        <p className="text-xs text-[#555]">
-          © 2024-2026 Jersey Club EC. Todos los derechos reservados.
-        </p>
       </footer>
     </div>
   );

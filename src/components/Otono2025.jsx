@@ -10,7 +10,7 @@ export default function Otono2025() {
         <div className="categories-grid">
           <article className="category-card">
             <Link to="/futbol?filter=temporada2025" style={{ textDecoration: 'none', color: 'inherit' }}>
-              <img src="/assets/images/real-madrid-2025-local.webp" alt="Colección Otoño" className="category-image" loading="lazy" />
+              <img src="https://storage.googleapis.com/imagenesjerseyclub/real-madrid-2025-local.webp" alt="Colección Otoño" className="category-image" loading="lazy" />
               <h3 className="category-name">Colección Otoño</h3>
               <p className="product-description">Nueva temporada con diseños exclusivos</p>
             </Link>
@@ -19,7 +19,7 @@ export default function Otono2025() {
 
           <article className="category-card">
             <Link to="/formula1?filter=temporada2025" style={{ textDecoration: 'none', color: 'inherit' }}>
-              <img src="/assets/images/red-bull-racing-2025.webp" alt="F1 Otoño" className="category-image" loading="lazy" />
+              <img src="https://storage.googleapis.com/imagenesjerseyclub/red-bull-racing-2025.webp" alt="F1 Otoño" className="category-image" loading="lazy" />
               <h3 className="category-name">F1 Otoño</h3>
               <p className="product-description">Jerseys de temporada con nuevos colores</p>
             </Link>
@@ -28,7 +28,7 @@ export default function Otono2025() {
 
           <article className="category-card">
             <Link to="/jersey-club-brand?filter=temporada2025" style={{ textDecoration: 'none', color: 'inherit' }}>
-              <img src="/assets/images/camiseta-deportiva-hombre-jersey-club.webp" alt="Tendencias Otoño" className="category-image" loading="lazy" />
+              <img src="https://storage.googleapis.com/imagenesjerseyclub/camiseta-deportiva-hombre-jersey-club.webp" alt="Tendencias Otoño" className="category-image" loading="lazy" />
               <h3 className="category-name">Tendencias Otoño</h3>
               <p className="product-description">Lo último en moda deportiva para otoño</p>
             </Link>
@@ -37,7 +37,7 @@ export default function Otono2025() {
 
           <article className="category-card">
             <Link to="/futbol?tipo=retro" style={{ textDecoration: 'none', color: 'inherit' }}>
-              <img src="/assets/images/real-madrid-2015-tercera-retro.webp" alt="Retro Otoño" className="category-image" loading="lazy" />
+              <img src="https://storage.googleapis.com/imagenesjerseyclub/real-madrid-2015-tercera-retro.webp" alt="Retro Otoño" className="category-image" loading="lazy" />
               <h3 className="category-name">Retro Otoño</h3>
               <p className="product-description">Clásicos reimaginados para la nueva temporada</p>
             </Link>

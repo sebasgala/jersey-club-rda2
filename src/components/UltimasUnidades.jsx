@@ -10,7 +10,7 @@ export default function UltimasUnidades() {
         <div className="categories-grid">
           <article className="category-card">
             <Link to="/product/medias-running-jersey-club" style={{ textDecoration: 'none', color: 'inherit' }}>
-              <img src="/assets/images/medias-running-jersey-club.webp" alt="Medias Running" className="category-image" loading="lazy" />
+              <img src="https://storage.googleapis.com/imagenesjerseyclub/medias-running-jersey-club.webp" alt="Medias Running" className="category-image" loading="lazy" />
               <h3 className="category-name">Medias Running</h3>
               <p className="product-description">Solo quedan pocas unidades disponibles</p>
             </Link>
@@ -19,7 +19,7 @@ export default function UltimasUnidades() {
 
           <article className="category-card">
             <Link to="/product/gorra-running-jersey-club" style={{ textDecoration: 'none', color: 'inherit' }}>
-              <img src="/assets/images/gorra-running-jersey-club.webp" alt="Gorras Jersey Club" className="category-image" loading="lazy" />
+              <img src="https://storage.googleapis.com/imagenesjerseyclub/gorra-running-jersey-club.webp" alt="Gorras Jersey Club" className="category-image" loading="lazy" />
               <h3 className="category-name">Gorras Jersey Club</h3>
               <p className="product-description">Últimas tallas en stock</p>
             </Link>
@@ -28,7 +28,7 @@ export default function UltimasUnidades() {
 
           <article className="category-card">
             <Link to="/futbol?equipo=Barcelona" style={{ textDecoration: 'none', color: 'inherit' }}>
-              <img src="/assets/images/barcelona-2026-local.webp" alt="Fc Barcelona" className="category-image" loading="lazy" />
+              <img src="https://storage.googleapis.com/imagenesjerseyclub/barcelona-2026-local.webp" alt="Fc Barcelona" className="category-image" loading="lazy" />
               <h3 className="category-name">Fc Barcelona</h3>
               <p className="product-description">Colección Fc Barcelona</p>
             </Link>
@@ -37,7 +37,7 @@ export default function UltimasUnidades() {
 
           <article className="category-card">
             <Link to="/formula1?equipo=McLaren&piloto=Norris" style={{ textDecoration: 'none', color: 'inherit' }}>
-              <img src="/assets/images/norris.webp" alt="Formula 1 Lando Norris" className="category-image" loading="lazy" />
+              <img src="https://storage.googleapis.com/imagenesjerseyclub/norris.webp" alt="Formula 1 Lando Norris" className="category-image" loading="lazy" />
               <h3 className="category-name">Formula 1 Lando Norris</h3>
               <p className="product-description">Edición especial Lando Norris</p>
             </Link>

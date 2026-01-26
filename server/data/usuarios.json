@@ -38,5 +38,93 @@
     "telefono": "0665585698",
     "direccion": "dammer 2\n",
     "createdAt": "2026-01-09T08:28:37.384Z"
+  },
+  {
+    "id": 5,
+    "email": "damian.nocolalde@jerseyclub.ec",
+    "password": "Cliente123!",
+    "name": "Damian Nicolalde",
+    "nombre": "Damian Nicolalde",
+    "rol": "cliente",
+    "telefono": "0999178775",
+    "direccion": "Quito",
+    "createdAt": "2026-01-09T12:25:08.122Z"
+  },
+  {
+    "id": 6,
+    "email": "jamescrazy@hotmail.com",
+    "password": "Cliente123!",
+    "name": "James Arguello",
+    "nombre": "James Arguello",
+    "rol": "cliente",
+    "telefono": "",
+    "direccion": "",
+    "createdAt": "2026-01-14T16:31:06.070Z"
+  },
+  {
+    "id": 7,
+    "email": "pedrito123@gmail.com",
+    "password": "James123",
+    "name": "Pedro Navaja",
+    "nombre": "Pedro Navaja",
+    "rol": "cliente",
+    "telefono": "",
+    "direccion": "",
+    "createdAt": "2026-01-14T16:47:06.462Z"
+  },
+  {
+    "id": 8,
+    "email": "coellocamila.lpm@gmail.com",
+    "password": "131821Cm.",
+    "name": "Ana  Camila Molina Coello",
+    "nombre": "Ana  Camila Molina Coello",
+    "rol": "cliente",
+    "telefono": "",
+    "direccion": "",
+    "createdAt": "2026-01-19T18:40:43.343Z"
+  },
+  {
+    "id": 9,
+    "email": "am1805787@gmail.com",
+    "password": "12345678A",
+    "name": "Allan Mathias Martinez Medina",
+    "nombre": "Allan Mathias Martinez Medina",
+    "rol": "cliente",
+    "telefono": "",
+    "direccion": "",
+    "createdAt": "2026-01-19T18:56:08.951Z"
+  },
+  {
+    "id": 10,
+    "email": "maria.paz.astudillo.2004@gmail.com",
+    "password": "Paz05042004",
+    "name": "Maria Paz Astudillo Narvaez",
+    "nombre": "Maria Paz Astudillo Narvaez",
+    "rol": "cliente",
+    "telefono": "",
+    "direccion": "",
+    "createdAt": "2026-01-19T19:10:07.425Z"
+  },
+  {
+    "id": 11,
+    "email": "test.cliente@ejemplo.com",
+    "password": "User123!",
+    "name": "Test Cliente RealTime",
+    "nombre": "Test Cliente RealTime",
+    "rol": "cliente",
+    "telefono": "0990001112",
+    "direccion": "",
+    "createdAt": "2026-01-25T06:59:42.637Z"
+  },
+  {
+    "id": 12,
+    "email": "test.admin@ejemplo.com",
+    "password": "Admin123!",
+    "name": "Test Admin RealTime",
+    "nombre": "Test Admin RealTime",
+    "rol": "admin",
+    "telefono": "",
+    "direccion": "",
+    "createdAt": "2026-01-25T06:59:42.649Z"
   }
 ]

@@ -2,10 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-html, body, #root {
-  height: 100%;
-}
-
 .hero {
   padding-top: 2rem; /* Increase the top padding for the hero section */
 }

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { registerUser } from '../models/httpClient';
 
 /**
  * =====================================================
@@ -45,6 +46,8 @@ const validateEmail = (email) => {
 const validatePassword = (password) => {
   if (!password) return 'La contraseña es requerida';
   if (password.length < 8) return 'La contraseña debe tener al menos 8 caracteres';
+  if (!/[A-Z]/.test(password)) return 'La contraseña debe incluir al menos una letra mayúscula';
+  if (!/[0-9]/.test(password)) return 'La contraseña debe incluir al menos un número';
   return '';
 };
 
@@ -110,9 +113,9 @@ export default function Register() {
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     const fieldValue = type === 'checkbox' ? checked : value;
-    
+
     setFormData(prev => ({ ...prev, [name]: fieldValue }));
-    
+
     // Limpiar errores
     if (submitError) setSubmitError('');
     if (submitSuccess) setSubmitSuccess(false);
@@ -156,9 +159,9 @@ export default function Register() {
   const handleBlur = (e) => {
     const { name, value, type, checked } = e.target;
     const fieldValue = type === 'checkbox' ? checked : value;
-    
+
     setTouched(prev => ({ ...prev, [name]: true }));
-    
+
     let error = '';
     switch (name) {
       case 'fullName':
@@ -191,7 +194,7 @@ export default function Register() {
     const passwordError = validatePassword(formData.password);
     const confirmPasswordError = validateConfirmPassword(formData.confirmPassword, formData.password);
     const termsError = validateTerms(formData.termsAccepted);
-    
+
     setErrors({
       fullName: fullNameError,
       email: emailError,
@@ -199,7 +202,7 @@ export default function Register() {
       confirmPassword: confirmPasswordError,
       termsAccepted: termsError
     });
-    
+
     setTouched({
       fullName: true,
       email: true,
@@ -207,7 +210,7 @@ export default function Register() {
       confirmPassword: true,
       termsAccepted: true
     });
-    
+
     return !fullNameError && !emailError && !passwordError && !confirmPasswordError && !termsError;
   };
 
@@ -227,19 +230,18 @@ export default function Register() {
    *    // Redirigir a login o auto-login
    */
   const handleRegister = async (values) => {
-    console.log('📝 Register attempt:', values);
-    
-    // Simular delay de red
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    // Simular respuesta exitosa
-    // TODO: Reemplazar con llamada real al backend
-    console.log('✅ Registration successful (placeholder)');
-    
-    // Ejemplo de error simulado (descomentar para probar):
-    // throw new Error('Este correo ya está registrado');
-    
-    return { success: true, user: { email: values.email, fullName: values.fullName } };
+    // Llamar al backend real
+    const response = await registerUser({
+      name: values.fullName,
+      email: values.email,
+      password: values.password
+    });
+
+    if (!response.success) {
+      throw new Error(response.message || 'Error al crear la cuenta');
+    }
+
+    return response;
   };
 
   /**
@@ -247,7 +249,7 @@ export default function Register() {
    */
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     // Validar formulario
     if (!validateForm()) return;
 
@@ -260,14 +262,14 @@ export default function Register() {
         email: formData.email,
         password: formData.password
       });
-      
+
       setSubmitSuccess(true);
-      
+
       // Redirigir después de 2 segundos
       setTimeout(() => {
         navigate('/auth');
       }, 2000);
-      
+
     } catch (error) {
       setSubmitError(error.message || 'Error al crear la cuenta. Intenta de nuevo.');
     } finally {
@@ -282,13 +284,13 @@ export default function Register() {
       {/* Main Content */}
       <main className="flex-1 flex items-center justify-center px-4 py-8 sm:py-12">
         <div className="w-full max-w-sm">
-          
+
           {/* Logo */}
           <div className="flex justify-center mb-6">
             <Link to="/" className="block">
-              <img 
-                src="/assets/images/logo.webp" 
-                alt="Jersey Club EC" 
+              <img
+                src="https://storage.googleapis.com/imagenesjerseyclub/logo.webp"
+                alt="Jersey Club EC"
                 className="h-10 sm:h-12 w-auto"
               />
             </Link>
@@ -296,7 +298,7 @@ export default function Register() {
 
           {/* Card de Registro */}
           <div className="bg-white rounded-lg border border-gray-300 p-5 sm:p-6 shadow-sm">
-            
+
             {/* Título */}
             <h1 className="text-2xl sm:text-[28px] font-normal text-[#0F1111] mb-5">
               Crear cuenta
@@ -331,11 +333,11 @@ export default function Register() {
 
             {/* Formulario */}
             <form onSubmit={handleSubmit} noValidate>
-              
+
               {/* Nombre completo */}
               <div className="mb-4">
-                <label 
-                  htmlFor="fullName" 
+                <label
+                  htmlFor="fullName"
                   className="block text-sm font-bold text-[#0F1111] mb-1"
                 >
                   Nombre completo
@@ -371,8 +373,8 @@ export default function Register() {
 
               {/* Email */}
               <div className="mb-4">
-                <label 
-                  htmlFor="email" 
+                <label
+                  htmlFor="email"
                   className="block text-sm font-bold text-[#0F1111] mb-1"
                 >
                   Correo electrónico
@@ -408,8 +410,8 @@ export default function Register() {
 
               {/* Password */}
               <div className="mb-4">
-                <label 
-                  htmlFor="password" 
+                <label
+                  htmlFor="password"
                   className="block text-sm font-bold text-[#0F1111] mb-1"
                 >
                   Contraseña
@@ -465,8 +467,8 @@ export default function Register() {
 
               {/* Confirmar Password */}
               <div className="mb-4">
-                <label 
-                  htmlFor="confirmPassword" 
+                <label
+                  htmlFor="confirmPassword"
                   className="block text-sm font-bold text-[#0F1111] mb-1"
                 >
                   Confirmar contraseña
@@ -617,30 +619,32 @@ export default function Register() {
           {/* Información adicional */}
           <div className="mt-6 text-center">
             <p className="text-xs text-gray-500 leading-relaxed">
-              Al crear una cuenta, podrás guardar tus productos favoritos, 
-              ver tu historial de pedidos y disfrutar de una experiencia 
+              Al crear una cuenta, podrás guardar tus productos favoritos,
+              ver tu historial de pedidos y disfrutar de una experiencia
               de compra personalizada.
             </p>
           </div>
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="py-6 text-center border-t border-gray-200 bg-gradient-to-b from-transparent to-[#f5f5f5]">
-        <div className="flex items-center justify-center gap-4 text-xs text-[#555] mb-2">
-          <Link to="#" className="text-[#0066c0] hover:text-[#c45500] hover:underline">
-            Condiciones de uso
-          </Link>
-          <Link to="#" className="text-[#0066c0] hover:text-[#c45500] hover:underline">
-            Aviso de privacidad
-          </Link>
-          <Link to="/contacto" className="text-[#0066c0] hover:text-[#c45500] hover:underline">
-            Ayuda
-          </Link>
+      {/* Footer minimalista con fondo blanco */}
+      <footer className="py-8 text-center border-t border-gray-200 bg-white shadow-[0_-1px_10px_rgba(0,0,0,0.02)]">
+        <div className="max-w-screen-xl mx-auto px-4">
+          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs font-medium text-gray-500 mb-4">
+            <Link to="/informacion" className="hover:text-[#BF1919] hover:underline transition-colors">
+              Condiciones de uso
+            </Link>
+            <Link to="/privacidad" className="hover:text-[#BF1919] hover:underline transition-colors">
+              Aviso de privacidad
+            </Link>
+            <Link to="/contacto" className="hover:text-[#BF1919] hover:underline transition-colors">
+              Ayuda
+            </Link>
+          </div>
+          <p className="text-[11px] text-gray-400 tracking-wide">
+            © 2024-2026 Jersey Club EC. Todos los derechos reservados.
+          </p>
         </div>
-        <p className="text-xs text-[#555]">
-          © 2024-2026 Jersey Club EC. Todos los derechos reservados.
-        </p>
       </footer>
     </div>
   );

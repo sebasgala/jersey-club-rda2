@@ -120,7 +120,7 @@ function Navbar({ onOpenCategories }) {
             </button>
 
             <Link to="/" className="brand-logo-image" title="Jersey Club EC">
-              <img src="/assets/images/letras-en-tira.webp" alt="Jersey Club EC" />
+              <img src="https://storage.googleapis.com/imagenesjerseyclub/letras-en-tira.webp" alt="Jersey Club EC" />
             </Link>
           </div>
 
@@ -162,13 +162,27 @@ function Navbar({ onOpenCategories }) {
                             src={product.image || product.imagen}
                             alt={product.title}
                             className="search-result-image"
-                            onError={(e) => { e.target.src = '/assets/images/default.webp'; }}
+                            onError={(e) => { e.target.src = 'https://storage.googleapis.com/imagenesjerseyclub/default.webp'; }}
                           />
                           <div className="search-result-info">
                             <span className="search-result-name">{product.title || product.nombre}</span>
                             <span className="search-result-category">{product.brand || product.category}</span>
                           </div>
-                          <div className="search-result-price">{product.price || product.precio}</div>
+                          <div className="search-result-price-container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '2px' }}>
+                            <div className="search-result-price" style={{ fontWeight: 'bold', color: '#B12704' }}>
+                              {(() => {
+                                const p = product.price || product.precio;
+                                if (p === undefined || p === null) return "$0.00";
+                                const numeric = typeof p === 'number' ? p : parseFloat(String(p).replace('$', '').replace(',', '')) || 0;
+                                return `$${numeric.toFixed(2)}`;
+                              })()}
+                            </div>
+                            {(product.isOnSale || product.onSale) && (
+                              <span className="search-result-discount" style={{ fontSize: '10px', color: '#CC0C39', fontWeight: 'bold', background: '#FFF0F0', padding: '1px 4px', borderRadius: '3px' }}>
+                                -{product.discount || 20}%
+                              </span>
+                            )}
+                          </div>
                         </Link>
                       ))}
                       <div
@@ -202,6 +216,15 @@ function Navbar({ onOpenCategories }) {
                 </button>
                 {isAdminMenuOpen && (
                   <div className="admin-dropdown-menu">
+                    <Link
+                      to="/admin/pos"
+                      className="admin-dropdown-item"
+                      onClick={() => setIsAdminMenuOpen(false)}
+                      style={{ borderBottom: '1px solid #eee', marginBottom: '5px', paddingBottom: '12px' }}
+                    >
+                      <i className="fa fa-cash-register" style={{ color: '#2563eb' }}></i>
+                      <span style={{ fontWeight: 'bold', color: '#2563eb' }}>PUNTO DE VENTA</span>
+                    </Link>
                     <Link
                       to="/admin/productos"
                       className="admin-dropdown-item"

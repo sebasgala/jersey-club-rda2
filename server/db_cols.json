@@ -1,0 +1,13 @@
+[
+  "id_producto",
+  "prd_nombre",
+  "prd_descripcion",
+  "prd_precio",
+  "prd_stock",
+  "prd_stockminimo",
+  "id_categoria",
+  "prd_activo",
+  "prd_createdat",
+  "prd_updatedat",
+  "prd_descuento"
+]

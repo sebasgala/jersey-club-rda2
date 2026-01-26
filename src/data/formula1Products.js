@@ -17,7 +17,7 @@ const generateId = (title) => {
 const rawProducts = [
   {
     "title": "McLaren F1 Lando Norris Campeón 2025",
-    "image": "/assets/images/formula-1-norris.webp",
+    "image": "https://storage.googleapis.com/imagenesjerseyclub/norris.webp",
     "price": "$95.00",
     "isOnSale": false,
     "team": "McLaren",
@@ -28,7 +28,7 @@ const rawProducts = [
   },
   {
     "title": "McLaren F1 Racing Team 2025",
-    "image": "/assets/images/mclared-f1-racing.webp",
+    "image": "https://storage.googleapis.com/imagenesjerseyclub/mclared-f1-racing.webp",
     "price": "$85.00",
     "isOnSale": false,
     "team": "McLaren",
@@ -38,7 +38,7 @@ const rawProducts = [
   },
   {
     "title": "Ferrari F1 Team 2025",
-    "image": "/assets/images/ferrari-f1-team-2025.webp",
+    "image": "https://storage.googleapis.com/imagenesjerseyclub/ferrari-f1-team-2025.webp",
     "price": "$85.00",
     "isOnSale": false,
     "team": "Ferrari",
@@ -48,7 +48,7 @@ const rawProducts = [
   },
   {
     "title": "Lewis Hamilton Ferrari 2025",
-    "image": "/assets/images/lewis-hamilton-ferrari-2025.webp",
+    "image": "https://storage.googleapis.com/imagenesjerseyclub/lewis-hamilton-ferrari-2025.webp",
     "price": "$90.00",
     "isOnSale": false,
     "team": "Ferrari",
@@ -58,7 +58,7 @@ const rawProducts = [
   },
   {
     "title": "Charles Leclerc Monaco GP",
-    "image": "/assets/images/charles-leclerc-monaco-gp.webp",
+    "image": "https://storage.googleapis.com/imagenesjerseyclub/charles-leclerc-monaco-gp.webp",
     "price": "$95.00",
     "isOnSale": true,
     "team": "Ferrari",
@@ -68,7 +68,7 @@ const rawProducts = [
   },
   {
     "title": "Red Bull Racing 2025",
-    "image": "/assets/images/red-bull-racing-2025.webp",
+    "image": "https://storage.googleapis.com/imagenesjerseyclub/red-bull-racing-2025.webp",
     "price": "$85.00",
     "isOnSale": false,
     "team": "Red Bull",
@@ -78,7 +78,7 @@ const rawProducts = [
   },
   {
     "title": "Max Verstappen 2025 Special Edition",
-    "image": "/assets/images/max-verstappen-2025-special.webp",
+    "image": "https://storage.googleapis.com/imagenesjerseyclub/red-bull-racing-2025.webp",
     "price": "$90.00",
     "isOnSale": true,
     "team": "Red Bull",
@@ -88,7 +88,7 @@ const rawProducts = [
   },
   {
     "title": "Mercedes AMG Petronas",
-    "image": "/assets/images/camiseta-mercedes-amg.webp",
+    "image": "https://storage.googleapis.com/imagenesjerseyclub/camiseta-mercedes-amg.webp",
     "price": "$80.00",
     "isOnSale": false,
     "team": "Mercedes",
@@ -98,7 +98,7 @@ const rawProducts = [
   },
   {
     "title": "Alpine F1 Team 2025",
-    "image": "/assets/images/alpine-f1-2025.webp",
+    "image": "https://storage.googleapis.com/imagenesjerseyclub/alpine-f1-2025.webp",
     "price": "$75.00",
     "isOnSale": true,
     "team": "Alpine",
@@ -108,7 +108,7 @@ const rawProducts = [
   },
   {
     "title": "Aston Martin F1 Team Polo 2024",
-    "image": "/assets/images/polo-aston-martin-f1-team-2024.webp",
+    "image": "https://storage.googleapis.com/imagenesjerseyclub/polo-aston-martin-f1-team-2024.webp",
     "price": "$70.00",
     "isOnSale": false,
     "team": "Aston Martin",
@@ -118,7 +118,7 @@ const rawProducts = [
   },
   {
     "title": "Williams Racing 2025",
-    "image": "/assets/images/williams-racing-2025.webp",
+    "image": "https://storage.googleapis.com/imagenesjerseyclub/williams-racing-2025.webp",
     "price": "$65.00",
     "isOnSale": false,
     "team": "Williams",
@@ -128,7 +128,7 @@ const rawProducts = [
   },
   {
     "title": "Haas F1 Team 2025",
-    "image": "/assets/images/haas-f1-team-2025.webp",
+    "image": "https://storage.googleapis.com/imagenesjerseyclub/haas-f1-team-2025.webp",
     "price": "$60.00",
     "isOnSale": true,
     "team": "Haas",
@@ -138,7 +138,7 @@ const rawProducts = [
   },
   {
     "title": "RB F1 Team 2025 (Visa Cash App)",
-    "image": "/assets/images/rb-f1-team-2025.webp",
+    "image": "https://storage.googleapis.com/imagenesjerseyclub/rb-f1-team-2025.webp",
     "price": "$65.00",
     "isOnSale": false,
     "team": "RB",
@@ -148,11 +148,21 @@ const rawProducts = [
   },
   {
     "title": "Sauber F1 Team 2025",
-    "image": "/assets/images/sauber-f1-2025.webp",
+    "image": "https://storage.googleapis.com/imagenesjerseyclub/sauber-f1-2025.webp",
     "price": "$60.00",
     "isOnSale": true,
     "team": "Sauber",
     "driver": "Valtteri Bottas",
+    "season": "2025",
+    "type": "Jersey"
+  },
+  {
+    "title": "Lando Norris Official Jersey 2025",
+    "image": "https://storage.googleapis.com/imagenesjerseyclub/norris.webp",
+    "price": "$85.00",
+    "isOnSale": false,
+    "team": "McLaren",
+    "driver": "Lando Norris",
     "season": "2025",
     "type": "Jersey"
   }

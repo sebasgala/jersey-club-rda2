@@ -22,6 +22,6 @@
     "nodemon": "^2.0.22"
   },
   "prisma": {
-    "seed": "node seed.js"
+    "seed": "node prisma/seed-productos.js"
   }
 }

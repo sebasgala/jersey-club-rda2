@@ -27,33 +27,7 @@ router.get("/", parsePagination, listarProductos);
 // GET /api/productos/:id - Detalle de un producto
 router.get("/:id", detalleProducto);
 
-// Obtener todos los productos
-router.get("/", async (req, res) => {
-  try {
-    const productos = await prisma.product.findMany({
-      include: {
-        categoria: true, // Incluir la relación con categoría si existe
-      },
-    });
 
-    // Transformar los datos para que coincidan con lo que espera el frontend
-    const productosFormateados = productos.map((producto) => ({
-      id: producto.id,
-      nombre: producto.nombre,
-      descripcion: producto.descripcion,
-      precio: producto.precio,
-      stock: producto.stock,
-      imagen: producto.imagen || "/assets/images/placeholder.webp",
-      categoria: producto.categoria?.nombre || "Sin categoría",
-      categoryId: producto.categoryId,
-    }));
-
-    res.json(productosFormateados);
-  } catch (error) {
-    console.error("Error al obtener productos:", error);
-    res.status(500).json({ error: "Error al obtener productos" });
-  }
-});
 
 // ==================== RUTAS PROTEGIDAS (ADMIN) ====================
 

@@ -1,70 +1,49 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 
-// Importar productos de todas las fuentes
-import footballProducts from "../data/footballProducts";
-import formula1Products from "../data/formula1Products";
-import { jerseyClubGeneratedProducts } from "../data/jerseyClubGeneratedProducts";
-
-// Importar utilidad de búsqueda global
+import { getProducts } from '../models/httpClient';
 import { searchProducts } from "../utils/allProductsUnified";
 
 const PAGE_SIZE = 12;
 
 // ========================================
-// FUENTE UNIFICADA DE PRODUCTOS
+// FUENTE DINÁMICA DE PRODUCTOS (API)
 // ========================================
 
 // Generar datos adicionales para estilo Amazon (incluye ID único)
-const generateProductData = (product, index, prefix) => {
-  const rating = (3.5 + Math.random() * 1.5).toFixed(1);
-  const reviews = Math.floor(100 + Math.random() * 2000);
-  const originalPrice = product.isOnSale
-    ? `$${(parseFloat(product.price.replace('$', '')) * 1.4).toFixed(2)}`
+
+
+// Helper para normalizar datos de API a vista
+const normalizeProduct = (p, index) => {
+  // Datos normalizados desde el backend
+  const discount = parseFloat(p.descuento || p.discount || 0);
+  const price = parseFloat(p.precio || p.price || 0);
+  const categoryName = p.categoria || p.category || '';
+
+  // Calcular precio original basado en el descuento
+  const originalPrice = discount > 0
+    ? (price / (1 - (discount / 100))).toFixed(2)
     : null;
-  const discount = product.isOnSale ? Math.floor(20 + Math.random() * 15) : 0;
-  const isBestSeller = index % 7 === 0;
+
+  // Determinar source real
+  let source = 'fb'; // fútbol por defecto
+  if (categoryName.toLowerCase().includes('fórmula') || categoryName.toLowerCase().includes('formula')) source = 'f1';
+  if (categoryName.toLowerCase().includes('jersey club')) source = 'jcb';
 
   return {
-    ...product,
-    id: product.id || `${prefix}-${index}`, // Usar ID existente o generar uno
-    rating: parseFloat(rating),
-    reviews,
-    originalPrice,
-    discount,
-    isBestSeller,
-    stock: product.stock !== undefined ? product.stock : 0, // Stock real
-    source: prefix, // Para identificar de dónde viene el producto
+    ...p,
+    id: p.id || p.id_producto,
+    title: p.nombre || p.title,
+    price: `$${price.toFixed(2)}`,
+    originalPrice: originalPrice ? `$${originalPrice}` : null,
+    image: p.imagen || p.image || 'https://storage.googleapis.com/imagenesjerseyclub/default.webp',
+    discount: discount,
+    isOnSale: discount > 0,
+    stock: p.stock || 0,
+    rating: 4.5,
+    reviews: 100,
+    source: source
   };
-};
-
-// Función helper para detectar si un producto está en oferta
-const isOnOffer = (product) => {
-  // Detectar oferta según los campos que existen en el proyecto
-  if (product.isOnSale === true) return true;
-  if (product.onSale === true) return true;
-  if (product.isOffer === true) return true;
-  if (product.discountPercentage && product.discountPercentage > 0) return true;
-  if (product.discount && product.discount > 0) return true;
-  return false;
-};
-
-// Unificar todos los productos del ecommerce
-const getAllProducts = () => {
-  const allProducts = [
-    // Productos de Fútbol
-    ...footballProducts.map((p, i) => generateProductData(p, i, 'fb')),
-    // Productos de Fórmula 1
-    ...formula1Products.map((p, i) => generateProductData(p, i, 'f1')),
-    // Productos de Jersey Club Brand
-    ...jerseyClubGeneratedProducts.map((p, i) => generateProductData(p, i, 'jcb')),
-  ];
-  return allProducts;
-};
-
-// Obtener solo productos en oferta
-const getOfferProducts = () => {
-  return getAllProducts().filter(isOnOffer);
 };
 
 // ========================================
@@ -91,13 +70,19 @@ const ProductCard = ({ product }) => {
       {/* Badges superiores */}
       <div className="relative">
         {product.isBestSeller && (
-          <div className="absolute top-0 left-0 z-20 bg-[#E10600] text-white text-[10px] sm:text-xs font-bold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-tl-lg rounded-br-lg">
-            ¡Oferta!
+          <div className="absolute top-0 left-0 z-20 bg-[#E10600] text-white text-[10px] sm:text-xs font-bold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-tl-lg rounded-br-lg shadow-md">
+            {product.isOnSale ? `¡Oferta! -${product.discount}%` : 'Best Seller'}
           </div>
         )}
         {product.isOnSale && !product.isBestSeller && (
-          <div className="absolute top-0 left-0 z-20 bg-[#BF1919] text-white text-[10px] sm:text-xs font-bold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-tl-lg rounded-br-lg">
+          <div className="absolute top-0 left-0 z-20 bg-[#BF1919] text-white text-[10px] sm:text-xs font-bold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-tl-lg rounded-br-lg shadow-md">
             -{product.discount}%
+          </div>
+        )}
+
+        {product.isOnSale && (
+          <div className="absolute top-0 right-0 z-20 bg-[#BF1919] text-white text-[10px] sm:text-xs font-bold px-1.5 sm:px-3 py-0.5 sm:py-1 rounded-tr-lg rounded-bl-lg shadow-md animate-pulse">
+            OFERTA
           </div>
         )}
 
@@ -109,7 +94,7 @@ const ProductCard = ({ product }) => {
               src={product.image}
               alt={product.title}
               loading="lazy"
-              onError={(e) => { e.target.src = '/assets/images/default.webp'; }}
+              onError={(e) => { e.target.src = 'https://storage.googleapis.com/imagenesjerseyclub/default.webp'; }}
             />
           </figure>
         </div>
@@ -134,16 +119,28 @@ const ProductCard = ({ product }) => {
           {product.isOnSale ? (
             <div className="space-y-0.5 sm:space-y-1">
               <div className="flex items-baseline gap-1 sm:gap-2 flex-wrap">
-                <span className="text-lg sm:text-2xl font-bold text-gray-900">{product.price}</span>
-                <span className="text-[10px] sm:text-sm text-gray-500 line-through">{product.originalPrice}</span>
+                <span className="text-lg sm:text-2xl font-bold text-gray-900">
+                  {`$${(parseFloat(String(product.price || 0).replace('$', '').replace(',', '')) || 0).toFixed(2)}`}
+                </span>
+                <span className="text-[10px] sm:text-sm text-gray-500 line-through">
+                  {product.originalPrice ? `$${(parseFloat(String(product.originalPrice).replace('$', '').replace(',', '')) || 0).toFixed(2)}` : ''}
+                </span>
               </div>
-              <p className="text-[10px] sm:text-xs text-[#E10600] font-medium">
-                ¡Oferta!
+              <p className="text-[10px] sm:text-xs text-[#E10600] font-bold">
+                ¡Oferta! -{product.discount}%
               </p>
             </div>
           ) : (
-            <span className="text-lg sm:text-2xl font-bold text-gray-900">{product.price}</span>
+            <span className="text-lg sm:text-2xl font-bold text-gray-900">
+              {`$${(parseFloat(String(product.price || 0).replace('$', '').replace(',', '')) || 0).toFixed(2)}`}
+            </span>
           )}
+        </div>
+
+        <div className="mt-1 mb-2">
+          <span className={`text-[10px] sm:text-xs font-medium ${product.stock <= 5 ? 'text-red-600' : 'text-[#007600]'}`}>
+            {product.stock <= 5 ? `¡Solo quedan ${product.stock}!` : `Stock: ${product.stock} unidades`}
+          </span>
         </div>
 
         {/* Botón ver producto */}
@@ -270,63 +267,72 @@ const Ofertas = () => {
   // Leer query params de la URL y aplicar filtros iniciales
   useEffect(() => {
     const categoria = searchParams.get('categoria');
-    const equipo = searchParams.get('equipo');
     const search = searchParams.get('search');
 
-    const newFilters = { ...filters };
-    let hasChanges = false;
+    setFilters(prev => {
+      const newFilters = { ...prev };
+      let hasChanges = false;
 
-    // Si hay búsqueda global, actualizar el estado
-    if (search && search !== filters.searchTerm) {
-      newFilters.searchTerm = search;
-      hasChanges = true;
-    } else if (!search && filters.searchTerm) {
-      newFilters.searchTerm = "";
-      hasChanges = true;
-    }
-
-    // Si hay categoría en URL, aplicar filtro
-    if (categoria) {
-      // Mapear nombre de categoría al formato esperado
-      const categoryMap = {
-        'Fútbol': 'Fútbol',
-        'Fórmula': 'Fórmula 1',
-        'Formula': 'Fórmula 1',
-        'JerseyClub': 'Jersey Club',
-      };
-      const mappedCategory = categoryMap[categoria] || categoria;
-      if (!filters.categories.includes(mappedCategory)) {
-        newFilters.categories = [mappedCategory];
+      if (search && search !== prev.searchTerm) {
+        newFilters.searchTerm = search;
+        hasChanges = true;
+      } else if (!search && prev.searchTerm) {
+        newFilters.searchTerm = "";
         hasChanges = true;
       }
-    }
 
-    // Si hay equipo en URL, se puede usar para búsqueda futura
-    // Por ahora solo aplicamos la categoría base
+      if (categoria) {
+        const categoryMap = {
+          'Fútbol': 'Fútbol',
+          'Fórmula': 'Fórmula 1',
+          'Formula': 'Fórmula 1',
+          'JerseyClub': 'Jersey Club',
+        };
+        const mappedCategory = categoryMap[categoria] || categoria;
+        if (!prev.categories.includes(mappedCategory)) {
+          newFilters.categories = [mappedCategory];
+          hasChanges = true;
+        }
+      }
 
-    if (hasChanges) {
-      setFilters(newFilters);
-    }
-  }, [searchParams, filters]); // Solo ejecutar cuando cambian los params o filtros externos
+      return hasChanges ? newFilters : prev;
+    });
+  }, [searchParams]);
 
   const [searchResults, setSearchResults] = useState([]);
 
   // Obtener productos base según modo (búsqueda global vs ofertas)
+  // Obtener productos base según modo (búsqueda global vs ofertas)
   useEffect(() => {
     const fetchBaseProducts = async () => {
-      if (isGlobalSearch) {
-        try {
-          // Modo búsqueda global: buscar en TODOS los productos (ahora asíncrono)
+      try {
+        if (isGlobalSearch) {
+          // Modo búsqueda global: Usa el utilitario unificado
           const results = await searchProducts(globalSearchTerm);
-          // Agregar datos adicionales para visualización
-          setSearchResults(results.map((product, index) => generateProductData(product, index, product.source || 'fb')));
-        } catch (error) {
-          console.error("Error en búsqueda global:", error);
-          setSearchResults([]);
+          setSearchResults(results.map((product, index) => normalizeProduct(product, index)));
+        } else {
+          // MODO OFERTAS ESTRICTO: Solo productos de la BASE DE DATOS con descuento > 0
+          const response = await getProducts();
+
+          if (response && response.status === 'success' && Array.isArray(response.data)) {
+            const allDbProducts = response.data;
+
+            // Filtrar solo los que tienen descuento > 0
+            const onlyOffers = allDbProducts
+              .filter(p => {
+                const disc = parseFloat(p.descuento || p.discount || 0);
+                return disc > 0;
+              })
+              .map((p, i) => normalizeProduct(p, i));
+
+            setSearchResults(onlyOffers);
+          } else {
+            setSearchResults([]);
+          }
         }
-      } else {
-        // Modo normal: solo productos en oferta
-        setSearchResults(getOfferProducts());
+      } catch (error) {
+        console.error("Error cargando productos de ofertas:", error);
+        setSearchResults([]);
       }
     };
 
@@ -340,8 +346,9 @@ const Ofertas = () => {
     // Filtro por categoría
     if (filters.categories.length > 0) {
       result = result.filter(p => {
-        const category = p.source === 'fb' ? 'Fútbol' : p.source === 'f1' ? 'Fórmula 1' : 'Jersey Club';
-        return filters.categories.includes(category);
+        const sourceMap = { 'fb': 'Fútbol', 'f1': 'Fórmula 1', 'jcb': 'Jersey Club' };
+        const categoryLabel = sourceMap[p.source] || 'Fútbol';
+        return filters.categories.includes(categoryLabel);
       });
     }
 
@@ -461,8 +468,8 @@ const Ofertas = () => {
           <main className="flex-1">
             {/* Banner - Solo mostrar en modo ofertas */}
             {!isGlobalSearch && (
-              <div className="bg-gradient-to-r from-[#E10600] to-[#BF1919] rounded-lg p-4 sm:p-6 mb-4 text-white">
-                <h2 className="text-lg sm:text-xl font-bold mb-1">🎉 ¡Aprovecha nuestras ofertas!</h2>
+              <div className="bg-gradient-to-r from-[#1a1a2e] to-[#16213e] rounded-lg p-4 sm:p-6 mb-4 text-white">
+                <h2 className="text-lg sm:text-xl font-bold mb-1">Aprovecha nuestras ofertas!</h2>
                 <p className="text-sm opacity-90">Productos de todas las categorías con descuentos exclusivos</p>
               </div>
             )}

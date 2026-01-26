@@ -1,0 +1,1 @@
+ALTER TABLE cliente ADD COLUMN IF NOT EXISTS cli_ced_ruc VARCHAR(20);

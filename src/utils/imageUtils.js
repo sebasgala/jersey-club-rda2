@@ -1,7 +1,7 @@
 const images = [
   '/assets/images/deportivo-quiro-2025-home-ecuador.webp',
   '/assets/images/emelec-2025-home-ecuador.webp',
-  '/assets/images/españa-home-2025.webp',
+  '/assets/images/espana-home-2025.webp',
   '/assets/images/fc-barcelona-1999-local-retro.webp',
   '/assets/images/fc-barcelona-2015-local-retro.webp',
   '/assets/images/ferrari-f1-team-2025.webp',

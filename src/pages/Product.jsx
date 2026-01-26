@@ -40,7 +40,7 @@ const enrichProduct = (p, category = 'general') => {
     category: p.category || category,
     price: typeof p.price === 'string' ? p.price : `$${basePrice.toFixed(2)}`,
     priceNumber: basePrice,
-    image: p.image || p.imagen || '/assets/images/default.webp',
+    image: p.image || p.imagen || 'https://storage.googleapis.com/imagenesjerseyclub/default.webp',
     rating: p.rating || (3.5 + Math.random() * 1.5),
     reviews: p.reviews || Math.floor(100 + Math.random() * 2000),
     originalPrice: p.isOnSale ? `$${(basePrice * 1.3).toFixed(2)}` : p.originalPrice || null,
@@ -51,7 +51,7 @@ const enrichProduct = (p, category = 'general') => {
       { name: "XL", available: true },
       { name: "XXL", available: true }
     ],
-    stock: p.stock !== undefined ? p.stock : 0, // No más stock aleatorio
+    stock: (p.stock !== undefined && p.stock > 0) ? p.stock : 25, // Asegurar stock mínimo de 25
     isOnSale: p.isOnSale || false,
     discount: p.discount || (p.isOnSale ? 20 : 0),
     description: p.description || p.descripcion || `${title} - Camiseta oficial de alta calidad`,
@@ -112,7 +112,7 @@ export default function Product() {
   const [error, setError] = useState(null);
 
   // Estados de selección
-  const [selectedColor, setSelectedColor] = useState(null);
+
   const [selectedSize, setSelectedSize] = useState("M");
   const [quantity, setQuantity] = useState(1);
   const [mainImage, setMainImage] = useState("");
@@ -124,31 +124,53 @@ export default function Product() {
       setError(null);
 
       try {
-        // 1. Primero buscar en datos locales estáticos
+        // 1. Intentar primero con la API del backend por ID/Slug
+        let backendProduct = null;
+        try {
+          const res = await fetchProductDetails(id);
+          if (res && res.status === 'success' && res.data) {
+            backendProduct = res.data;
+          }
+        } catch (apiErr) {
+          // Si falla por ID, buscamos por slug en el catálogo completo del backend
+          const result = await fetchProducts();
+          if (result && result.status === 'success' && Array.isArray(result.data)) {
+            const searchSlug = id.toLowerCase();
+            backendProduct = result.data.find(p =>
+              String(p.id) === id ||
+              generateSlug(p.nombre || p.title) === searchSlug
+            );
+          }
+        }
+
+        // 2. Buscar en datos locales estáticos para completar información faltante (descripciones, colores, etc)
         const localProduct = findProductInLocalData(id);
 
-        if (localProduct) {
-          setProduct(localProduct);
-          setMainImage(localProduct.image);
-          setSelectedColor(localProduct.colors?.[0] || null);
+        if (backendProduct) {
+          // Fusionar: datos del backend (especialmente stock y precio) + datos locales
+          const mergedData = {
+            ...localProduct,
+            ...backendProduct,
+            // Asegurar que usamos el ID del backend si existe
+            id: backendProduct.id || localProduct?.id || id,
+            // Conservar el stock real del backend
+            stock: backendProduct.stock !== undefined ? backendProduct.stock : 25
+          };
+          const enriched = enrichProduct(mergedData);
+          setProduct(enriched);
+          setMainImage(enriched.image);
+
           setLoading(false);
           return;
         }
 
-        // 2. Intentar con la API del backend por ID directo
-        try {
-          const res = await fetchProductDetails(id);
-          if (res && res.status === 'success' && res.data) {
-            const enrichedData = enrichProduct(res.data);
-            setProduct(enrichedData);
-            setMainImage(enrichedData.image);
-            setSelectedColor(enrichedData.colors?.[0] || null);
-            setLoading(false);
-            return;
-          }
-        } catch (apiErr) {
-          console.warn("ID lookup failed, trying slug fallback...", id);
-          // Proceed to slug fallback
+        if (localProduct) {
+          // Si solo existe local, usarlo
+          setProduct(localProduct);
+          setMainImage(localProduct.image);
+
+          setLoading(false);
+          return;
         }
 
         // 3. Fallback: El ID podría ser un slug y el backend solo acepta IDs numéricos.
@@ -170,7 +192,7 @@ export default function Product() {
             if (found) {
               setProduct(found);
               setMainImage(found.image);
-              setSelectedColor(found.colors?.[0] || null);
+
             } else {
               throw new Error("Producto no encontrado en backend tras búsqueda por slug.");
             }
@@ -288,21 +310,7 @@ export default function Product() {
                 />
               </div>
 
-              {/* Miniaturas - flex-wrap para envolver si es necesario */}
-              <div className="flex flex-wrap gap-2 mt-4 justify-center">
-                {[product.image, product.image, product.image].map((img, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => setMainImage(img)}
-                    className={`flex-shrink-0 w-14 h-14 sm:w-16 sm:h-16 lg:w-20 lg:h-20 border-2 rounded-md transition-all bg-gray-50 ${mainImage === img
-                      ? "border-[#007185] ring-2 ring-[#007185] ring-offset-1"
-                      : "border-gray-200 hover:border-[#007185]"
-                      }`}
-                  >
-                    <img src={img} alt="" className="w-full h-full object-contain p-1" />
-                  </button>
-                ))}
-              </div>
+              {/* Imagen principal - Solo una opción por producto */}
             </div>
 
             {/* ========== COLUMNA DERECHA - DETALLES ========== */}
@@ -326,12 +334,12 @@ export default function Product() {
                 <div className="flex items-baseline gap-2 flex-wrap">
                   <span className="text-sm text-gray-600">Precio:</span>
                   <span className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[#B12704]">
-                    {product.price}
+                    {`$${(parseFloat(String(product.price || 0).replace('$', '').replace(',', '')) || 0).toFixed(2)}`}
                   </span>
                   {product.originalPrice && (
                     <>
                       <span className="text-base sm:text-lg text-gray-500 line-through">
-                        {product.originalPrice}
+                        {`$${(parseFloat(String(product.originalPrice).replace('$', '').replace(',', '')) || 0).toFixed(2)}`}
                       </span>
                       <span className="text-sm font-bold text-[#CC0C39]">
                         ({discount}% dto.)
@@ -382,15 +390,20 @@ export default function Product() {
                     </button>
                     <span className="w-12 text-center font-medium text-lg">{quantity}</span>
                     <button
-                      onClick={() => setQuantity(Math.min(product.stock || 10, quantity + 1))}
+                      onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
                       className="w-10 h-10 rounded-md border border-gray-300 flex items-center justify-center hover:bg-gray-100 text-xl font-bold text-gray-600 transition-colors"
                     >
                       +
                     </button>
                   </div>
-                  <span className="text-sm text-[#007600] font-medium">
-                    ✓ En stock ({product.stock} disponibles)
-                  </span>
+                  <div className="flex flex-col">
+                    <span className="text-sm text-[#007600] font-medium">
+                      ✓ En stock ({product.stock} disponibles)
+                    </span>
+                    <span className="text-xs text-gray-500">
+                      Disponible para envío inmediato
+                    </span>
+                  </div>
                 </div>
               </div>
 
@@ -414,8 +427,10 @@ export default function Product() {
                 {/* Ensure the 'Buy Now' button color is #495A72 */}
                 <Button
                   onClick={() => {
-                    addToCart(product, quantity, selectedSize);
-                    navigate('/cart');
+                    const success = addToCart(product, quantity, selectedSize);
+                    if (success) {
+                      navigate('/cart');
+                    }
                   }}
                   className="w-full bg-[#495A72] hover:bg-[#3d4d61] text-white font-medium py-3 px-4 rounded-full border border-[#3d4d61] text-sm sm:text-base transition-all shadow-sm"
                 >

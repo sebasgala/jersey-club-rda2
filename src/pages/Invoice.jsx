@@ -106,9 +106,7 @@ export default function Invoice() {
             </div>
           </div>
 
-          <p className="text-sm text-gray-600 mb-6 print:hidden">
-            Hemos enviado un correo de confirmación a <strong>{order.shippingData?.email}</strong>
-          </p>
+
 
           <div className="flex flex-col sm:flex-row gap-3 justify-center print:hidden" data-html2canvas-ignore>
             <button

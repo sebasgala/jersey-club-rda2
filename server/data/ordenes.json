@@ -298,5 +298,1194 @@
     "tipo": "venta",
     "notas": "",
     "updatedAt": "2026-01-09T08:29:56.327Z"
+  },
+  {
+    "id": "P74048",
+    "orderNumber": "JC-1767961670190-6WDT6",
+    "userId": 3,
+    "status": "pending",
+    "estado": "pendiente",
+    "items": [
+      {
+        "id": "P15924",
+        "title": "Producto prueba",
+        "price": "$40.00",
+        "image": "/assets/images/america-2025-visitante.webp",
+        "quantity": 6,
+        "selectedSize": "M",
+        "isOnSale": false,
+        "originalPrice": null,
+        "category": "general",
+        "addedAt": 1767961630163
+      }
+    ],
+    "total": {
+      "subtotal": "240.00",
+      "shipping": "0.00",
+      "taxes": "36.00",
+      "total": "276.00",
+      "freeShipping": true,
+      "freeShippingThreshold": 50
+    },
+    "shippingData": {
+      "fullName": "Mathias Freire",
+      "email": "mathias.freire@jerseyclub.ec",
+      "phone": "0997941179",
+      "country": "Ecuador",
+      "city": "Quito",
+      "address": "dammer 2",
+      "postalCode": "726372"
+    },
+    "paymentMethod": {
+      "type": "card",
+      "last4": "8929"
+    },
+    "fecha": "2026-01-09T12:27:50.190Z",
+    "createdAt": "2026-01-09T12:27:50.190Z",
+    "tipo": "venta",
+    "notas": ""
+  },
+  {
+    "id": "P33167",
+    "orderNumber": "JC-1767961775799-ULHV0",
+    "userId": 5,
+    "status": "completado",
+    "estado": "completado",
+    "items": [
+      {
+        "id": "P15924",
+        "nombre": "Producto prueba",
+        "precio": 40,
+        "cantidad": 2,
+        "imagen": "/assets/images/america-2025-visitante.webp"
+      }
+    ],
+    "total": 80,
+    "shippingData": {
+      "fullName": "Damian Nicolalde",
+      "address": "Quito",
+      "phone": "0999178775",
+      "email": "damian.nocolalde@jerseyclub.ec",
+      "city": "Ecuador"
+    },
+    "paymentMethod": "efectivo",
+    "fecha": "2026-01-09T12:29:48.082Z",
+    "createdAt": "2026-01-09T12:29:35.799Z",
+    "tipo": "venta",
+    "notas": "",
+    "updatedAt": "2026-01-09T12:29:48.096Z"
+  },
+  {
+    "id": "P12845",
+    "orderNumber": "JC-1768409555423-HIT2N",
+    "userId": 3,
+    "status": "pending",
+    "estado": "pendiente",
+    "items": [
+      {
+        "id": "P00068",
+        "title": "Ferrari F1 Team 2025",
+        "price": "$85.00",
+        "image": "/assets/images/ferrari-f1-team-2025.webp",
+        "quantity": 1,
+        "selectedSize": "M",
+        "isOnSale": false,
+        "originalPrice": null,
+        "category": "general",
+        "addedAt": 1768409250853
+      }
+    ],
+    "total": {
+      "subtotal": "85.00",
+      "shipping": "0.00",
+      "taxes": "12.75",
+      "total": "97.75",
+      "freeShipping": true,
+      "freeShippingThreshold": 50
+    },
+    "shippingData": {
+      "fullName": "Pedro Navaja",
+      "email": "pedrito123@gmail.com",
+      "phone": "0991730968",
+      "country": "Ecuador",
+      "city": "El Coca",
+      "address": "Av 9 de Octubre",
+      "postalCode": "220202"
+    },
+    "paymentMethod": {
+      "type": "card",
+      "last4": "5802"
+    },
+    "fecha": "2026-01-14T16:52:35.423Z",
+    "createdAt": "2026-01-14T16:52:35.423Z",
+    "tipo": "venta",
+    "notas": ""
+  },
+  {
+    "id": "P15807",
+    "orderNumber": "JC-1768447021652-E63DX",
+    "userId": "guest",
+    "status": "pendiente",
+    "estado": "pendiente",
+    "items": [
+      {
+        "id": "burissia-2026-local",
+        "nombre": "Burissia 2026 Local",
+        "cantidad": 1,
+        "precioCompra": 60,
+        "stockActual": 0
+      },
+      {
+        "id": "burissia-2026-local",
+        "nombre": "Burissia 2026 Local",
+        "cantidad": 1,
+        "precioCompra": 60,
+        "stockActual": 0
+      }
+    ],
+    "total": 120,
+    "shippingData": {
+      "fullName": "Proveedor: china 1",
+      "address": "Bodega Principal",
+      "city": "Quito",
+      "phone": "N/A",
+      "email": "N/A"
+    },
+    "paymentMethod": "Factura Transferencia",
+    "fecha": "2026-01-15T03:17:01.650Z",
+    "createdAt": "2026-01-15T03:17:01.652Z",
+    "tipo": "compra",
+    "notas": ""
+  },
+  {
+    "id": "P97188",
+    "orderNumber": "JC-1768447039679-5TK9V",
+    "userId": "guest",
+    "status": "pendiente",
+    "estado": "pendiente",
+    "items": [
+      {
+        "id": "burissia-2026-local",
+        "nombre": "Burissia 2026 Local",
+        "cantidad": 1,
+        "precioCompra": 60,
+        "stockActual": 0
+      },
+      {
+        "id": "burissia-2026-local",
+        "nombre": "Burissia 2026 Local",
+        "cantidad": 1,
+        "precioCompra": 60,
+        "stockActual": 0
+      }
+    ],
+    "total": 120,
+    "shippingData": {
+      "fullName": "Proveedor: china 1",
+      "address": "Bodega Principal",
+      "city": "Quito",
+      "phone": "N/A",
+      "email": "N/A"
+    },
+    "paymentMethod": "Factura Transferencia",
+    "fecha": "2026-01-15T03:17:19.679Z",
+    "createdAt": "2026-01-15T03:17:19.679Z",
+    "tipo": "compra",
+    "notas": ""
+  },
+  {
+    "id": "P21658",
+    "orderNumber": "JC-1768447055147-E7U11",
+    "userId": "guest",
+    "status": "pendiente",
+    "estado": "pendiente",
+    "items": [
+      {
+        "id": "burissia-2026-local",
+        "nombre": "Burissia 2026 Local",
+        "cantidad": 1,
+        "precioCompra": 60,
+        "stockActual": 0
+      },
+      {
+        "id": "burissia-2026-local",
+        "nombre": "Burissia 2026 Local",
+        "cantidad": 1,
+        "precioCompra": 60,
+        "stockActual": 0
+      }
+    ],
+    "total": 120,
+    "shippingData": {
+      "fullName": "Proveedor: china 1",
+      "address": "Bodega Principal",
+      "city": "Quito",
+      "phone": "N/A",
+      "email": "N/A"
+    },
+    "paymentMethod": "Factura Transferencia",
+    "fecha": "2026-01-15T03:17:35.147Z",
+    "createdAt": "2026-01-15T03:17:35.147Z",
+    "tipo": "compra",
+    "notas": ""
+  },
+  {
+    "id": "P23118",
+    "orderNumber": "JC-1768447102706-2F2RY",
+    "userId": "guest",
+    "status": "recibido",
+    "estado": "recibido",
+    "items": [
+      {
+        "id": "burissia-2026-local",
+        "nombre": "Burissia 2026 Local",
+        "cantidad": 1,
+        "precioCompra": 60,
+        "stockActual": 0
+      },
+      {
+        "id": "burissia-2026-local",
+        "nombre": "Burissia 2026 Local",
+        "cantidad": 1,
+        "precioCompra": 60,
+        "stockActual": 0
+      }
+    ],
+    "total": 120,
+    "shippingData": {
+      "fullName": "Proveedor: china 1",
+      "address": "Bodega Principal",
+      "city": "Quito",
+      "phone": "N/A",
+      "email": "N/A"
+    },
+    "paymentMethod": "Factura Transferencia",
+    "fecha": "2026-01-15T03:18:22.703Z",
+    "createdAt": "2026-01-15T03:18:22.706Z",
+    "tipo": "compra",
+    "notas": ""
+  },
+  {
+    "id": "P99501",
+    "orderNumber": "JC-1768448663218-IMHLC",
+    "userId": 3,
+    "status": "pending",
+    "estado": "pendiente",
+    "items": [
+      {
+        "id": "P00004",
+        "title": "Ac Milan 2006 Local Retro",
+        "price": "$45.00",
+        "image": "/assets/images/ac-milan-2006-local-retro.webp",
+        "quantity": 1,
+        "selectedSize": "M",
+        "isOnSale": false,
+        "originalPrice": null,
+        "category": "general",
+        "addedAt": 1768448568884
+      }
+    ],
+    "total": {
+      "subtotal": "45.00",
+      "shipping": "5.00",
+      "taxes": "6.75",
+      "total": "56.75",
+      "freeShipping": false,
+      "freeShippingThreshold": 50
+    },
+    "shippingData": {
+      "fullName": "Mathias Freire",
+      "email": "mathias.freire@jerseyclub.ec",
+      "phone": "099738454485",
+      "country": "Ecuador",
+      "city": "quito",
+      "address": "dammer 2",
+      "postalCode": "83847"
+    },
+    "paymentMethod": {
+      "type": "card",
+      "last4": "0202"
+    },
+    "fecha": "2026-01-15T03:44:23.218Z",
+    "createdAt": "2026-01-15T03:44:23.218Z",
+    "tipo": "venta",
+    "notas": ""
+  },
+  {
+    "id": "P95329",
+    "orderNumber": "JC-1768449384088-9TLIW",
+    "userId": "guest",
+    "status": "pending",
+    "estado": "pendiente",
+    "items": [
+      {
+        "id": "P00004",
+        "nombre": "Ac Milan 2006 Local Retro",
+        "cantidad": 1,
+        "precio": 45
+      }
+    ],
+    "total": {
+      "total": 45
+    },
+    "shippingData": {
+      "fullName": "Prueba Stock"
+    },
+    "fecha": "2026-01-15T03:56:24.088Z",
+    "createdAt": "2026-01-15T03:56:24.088Z",
+    "tipo": "venta",
+    "notas": ""
+  },
+  {
+    "id": "P52567",
+    "orderNumber": "JC-1768449539598-OG7BJ",
+    "userId": 3,
+    "status": "pending",
+    "estado": "pendiente",
+    "items": [
+      {
+        "id": "P00006",
+        "title": "Ac Milan 2025 Away",
+        "price": "$60.00",
+        "image": "/assets/images/ac-milan-2025-away.webp",
+        "quantity": 1,
+        "selectedSize": "XXL",
+        "isOnSale": false,
+        "originalPrice": null,
+        "category": "general",
+        "addedAt": 1768449496275
+      }
+    ],
+    "total": {
+      "subtotal": "60.00",
+      "shipping": "0.00",
+      "taxes": "9.00",
+      "total": "69.00",
+      "freeShipping": true,
+      "freeShippingThreshold": 50
+    },
+    "shippingData": {
+      "fullName": "Mathias Freire",
+      "email": "mathias.freire@jerseyclub.ec",
+      "phone": "0997941179",
+      "country": "Ecuador",
+      "city": "Quito",
+      "address": "dammer 2",
+      "postalCode": "3737392"
+    },
+    "paymentMethod": {
+      "type": "card",
+      "last4": "8388"
+    },
+    "fecha": "2026-01-15T03:58:59.598Z",
+    "createdAt": "2026-01-15T03:58:59.598Z",
+    "tipo": "venta",
+    "notas": ""
+  },
+  {
+    "id": "P83794",
+    "orderNumber": "JC-1768449700619-RMH5Z",
+    "userId": 3,
+    "status": "pending",
+    "estado": "pendiente",
+    "items": [
+      {
+        "id": "P00007",
+        "title": "Ac Milan 2025 Local",
+        "price": "$60.00",
+        "image": "/assets/images/ac-milan-2025-local.webp",
+        "quantity": 1,
+        "selectedSize": "M",
+        "isOnSale": false,
+        "originalPrice": null,
+        "category": "general",
+        "addedAt": 1768449664514
+      }
+    ],
+    "total": {
+      "subtotal": "60.00",
+      "shipping": "0.00",
+      "taxes": "9.00",
+      "total": "69.00",
+      "freeShipping": true,
+      "freeShippingThreshold": 50
+    },
+    "shippingData": {
+      "fullName": "Mathias Freire",
+      "email": "mathias.freire@jerseyclub.ec",
+      "phone": "+539 997941179",
+      "country": "Ecuador",
+      "city": "quito",
+      "address": "Av 9 de Octubre",
+      "postalCode": "17282"
+    },
+    "paymentMethod": {
+      "type": "card",
+      "last4": "7277"
+    },
+    "fecha": "2026-01-15T04:01:40.619Z",
+    "createdAt": "2026-01-15T04:01:40.619Z",
+    "tipo": "venta",
+    "notas": ""
+  },
+  {
+    "id": "P22083",
+    "orderNumber": "JC-1768450105955-7W2H7",
+    "userId": 3,
+    "status": "pending",
+    "estado": "pendiente",
+    "items": [
+      {
+        "id": "P00005",
+        "title": "Ac Milan 2006 Visitante Retro",
+        "price": "$45.00",
+        "image": "/assets/images/ac-milan-2006-visitante-retro.webp",
+        "quantity": 1,
+        "selectedSize": "M",
+        "isOnSale": false,
+        "originalPrice": null,
+        "category": "general",
+        "addedAt": 1768450040889
+      }
+    ],
+    "total": {
+      "subtotal": "45.00",
+      "shipping": "5.00",
+      "taxes": "6.75",
+      "total": "56.75",
+      "freeShipping": false,
+      "freeShippingThreshold": 50
+    },
+    "shippingData": {
+      "fullName": "Mathias Freire",
+      "email": "mathias.freire@jerseyclub.ec",
+      "phone": "+539 997941179",
+      "country": "Ecuador",
+      "city": "Quito",
+      "address": "Av 9 de Octubre",
+      "postalCode": "1717829"
+    },
+    "paymentMethod": {
+      "type": "card",
+      "last4": "7476"
+    },
+    "fecha": "2026-01-15T04:08:25.955Z",
+    "createdAt": "2026-01-15T04:08:25.955Z",
+    "tipo": "venta",
+    "notas": ""
+  },
+  {
+    "id": "P76113",
+    "orderNumber": "JC-1768451351533-Z6K97",
+    "userId": 3,
+    "status": "pending",
+    "estado": "pendiente",
+    "items": [
+      {
+        "id": "P00005",
+        "title": "Ac Milan 2006 Visitante Retro",
+        "price": "$45.00",
+        "image": "/assets/images/ac-milan-2006-visitante-retro.webp",
+        "quantity": 1,
+        "selectedSize": "M",
+        "isOnSale": false,
+        "originalPrice": null,
+        "category": "general",
+        "addedAt": 1768451311925
+      }
+    ],
+    "total": {
+      "subtotal": "45.00",
+      "shipping": "5.00",
+      "taxes": "6.75",
+      "total": "56.75",
+      "freeShipping": false,
+      "freeShippingThreshold": 50
+    },
+    "shippingData": {
+      "fullName": "Mathias Freire",
+      "email": "mathias.freire@jerseyclub.ec",
+      "phone": "+539 997941179",
+      "country": "Ecuador",
+      "city": "Quito",
+      "address": "Av 9 de Octubre",
+      "postalCode": "726372"
+    },
+    "paymentMethod": {
+      "type": "card",
+      "last4": "9399"
+    },
+    "fecha": "2026-01-15T04:29:11.533Z",
+    "createdAt": "2026-01-15T04:29:11.533Z",
+    "tipo": "venta",
+    "notas": ""
+  },
+  {
+    "id": "P53740",
+    "orderNumber": "JC-1768848124423-D978B",
+    "userId": 3,
+    "status": "pending",
+    "estado": "pendiente",
+    "items": [
+      {
+        "id": "P00011",
+        "title": "Argentina 2026 Local",
+        "price": "$60.00",
+        "image": "/assets/images/argentina-2026-local.webp",
+        "quantity": 1,
+        "selectedSize": "M",
+        "stock": 30,
+        "isOnSale": false,
+        "originalPrice": null,
+        "category": "general",
+        "addedAt": 1768847955572
+      },
+      {
+        "id": "P00013",
+        "title": "Barcelona 1987 Local Retro",
+        "price": "$45.00",
+        "image": "/assets/images/barcelona-1987-local-retro.webp",
+        "quantity": 1,
+        "selectedSize": "M",
+        "stock": 25,
+        "isOnSale": false,
+        "originalPrice": null,
+        "category": "general",
+        "addedAt": 1768847977638
+      }
+    ],
+    "total": {
+      "subtotal": "105.00",
+      "shipping": "0.00",
+      "taxes": "15.75",
+      "total": "120.75",
+      "freeShipping": true,
+      "freeShippingThreshold": 50
+    },
+    "shippingData": {
+      "fullName": "Ana Camila Molina Coello",
+      "email": "coellocamila.lpm@gmail.com",
+      "phone": "0995191940",
+      "country": "Ecuador",
+      "city": "Quito",
+      "address": "Av 9 de Octubre",
+      "postalCode": "54561"
+    },
+    "paymentMethod": {
+      "type": "card",
+      "last4": "4444"
+    },
+    "fecha": "2026-01-19T18:42:04.423Z",
+    "createdAt": "2026-01-19T18:42:04.423Z",
+    "tipo": "venta",
+    "notas": ""
+  },
+  {
+    "id": "P86024",
+    "orderNumber": "JC-1768848282157-WMCRN",
+    "userId": 3,
+    "status": "pending",
+    "estado": "pendiente",
+    "items": [
+      {
+        "id": "P00069",
+        "title": "Lewis Hamilton Ferrari 2025",
+        "price": "$90.00",
+        "image": "/assets/images/lewis-hamilton-ferrari-2025.webp",
+        "quantity": 1,
+        "selectedSize": "M",
+        "stock": 20,
+        "isOnSale": false,
+        "originalPrice": null,
+        "category": "general",
+        "addedAt": 1768848217974
+      }
+    ],
+    "total": {
+      "subtotal": "90.00",
+      "shipping": "0.00",
+      "taxes": "13.50",
+      "total": "103.50",
+      "freeShipping": true,
+      "freeShippingThreshold": 50
+    },
+    "shippingData": {
+      "fullName": "Ana  Camila Molina Coello",
+      "email": "coellocamila.lpm@gmail.com",
+      "phone": "0995191940",
+      "country": "Ecuador",
+      "city": "Quito",
+      "address": "Av 9 de Octubre",
+      "postalCode": "54561"
+    },
+    "paymentMethod": {
+      "type": "card",
+      "last4": "4444"
+    },
+    "fecha": "2026-01-19T18:44:42.157Z",
+    "createdAt": "2026-01-19T18:44:42.157Z",
+    "tipo": "venta",
+    "notas": ""
+  },
+  {
+    "id": "P28547",
+    "orderNumber": "JC-1768848481161-0XDOC",
+    "userId": 3,
+    "status": "pending",
+    "estado": "pendiente",
+    "items": [
+      {
+        "id": "P00004",
+        "title": "Ac Milan 2006 Local Retro",
+        "price": "$45.00",
+        "image": "/assets/images/ac-milan-2006-local-retro.webp",
+        "quantity": 1,
+        "selectedSize": "M",
+        "stock": 24,
+        "isOnSale": false,
+        "originalPrice": null,
+        "category": "general",
+        "addedAt": 1768848431718
+      },
+      {
+        "id": "P00011",
+        "title": "Argentina 2026 Local",
+        "price": "$60.00",
+        "image": "/assets/images/argentina-2026-local.webp",
+        "quantity": 1,
+        "selectedSize": "M",
+        "stock": 29,
+        "isOnSale": false,
+        "originalPrice": null,
+        "category": "general",
+        "addedAt": 1768848441077
+      }
+    ],
+    "total": {
+      "subtotal": "105.00",
+      "shipping": "0.00",
+      "taxes": "15.75",
+      "total": "120.75",
+      "freeShipping": true,
+      "freeShippingThreshold": 50
+    },
+    "shippingData": {
+      "fullName": "Ana  Camila Molina Coello",
+      "email": "coellocamila.lpm@gmail.com",
+      "phone": "0995191940",
+      "country": "Ecuador",
+      "city": "Quito",
+      "address": "Av 9 de Octubre",
+      "postalCode": "726372"
+    },
+    "paymentMethod": {
+      "type": "card",
+      "last4": "1111"
+    },
+    "fecha": "2026-01-19T18:48:01.161Z",
+    "createdAt": "2026-01-19T18:48:01.161Z",
+    "tipo": "venta",
+    "notas": ""
+  },
+  {
+    "id": "P73355",
+    "orderNumber": "JC-1768848587880-LM2Z6",
+    "userId": 3,
+    "status": "pending",
+    "estado": "pendiente",
+    "items": [
+      {
+        "id": "P00009",
+        "title": "Argentina 1999 Visitante Retro",
+        "price": "$45.00",
+        "image": "/assets/images/argentina-1999-visitante-retro.webp",
+        "quantity": 1,
+        "selectedSize": "M",
+        "stock": 25,
+        "isOnSale": true,
+        "originalPrice": "$58.50",
+        "category": "futbol",
+        "addedAt": 1768848524660
+      },
+      {
+        "id": "P00077",
+        "title": "Haas F1 Team 2025",
+        "price": "$60.00",
+        "image": "/assets/images/haas-f1-team-2025.webp",
+        "quantity": 1,
+        "selectedSize": "M",
+        "stock": 20,
+        "isOnSale": true,
+        "originalPrice": "$78.00",
+        "category": "formula1",
+        "addedAt": 1768848540164
+      }
+    ],
+    "total": {
+      "subtotal": "105.00",
+      "shipping": "0.00",
+      "taxes": "15.75",
+      "total": "120.75",
+      "freeShipping": true,
+      "freeShippingThreshold": 50
+    },
+    "shippingData": {
+      "fullName": "Ana  Camila Molina Coello",
+      "email": "coellocamila.lpm@gmail.com",
+      "phone": "0995191940",
+      "country": "Ecuador",
+      "city": "Quito",
+      "address": "Av 9 de Octubre",
+      "postalCode": "34345"
+    },
+    "paymentMethod": {
+      "type": "card",
+      "last4": "5555"
+    },
+    "fecha": "2026-01-19T18:49:47.880Z",
+    "createdAt": "2026-01-19T18:49:47.880Z",
+    "tipo": "venta",
+    "notas": ""
+  },
+  {
+    "id": "P12829",
+    "orderNumber": "JC-1768849075226-1A46X",
+    "userId": 3,
+    "status": "pending",
+    "estado": "pendiente",
+    "items": [
+      {
+        "id": "P00063",
+        "title": "Barcelona Ecuador 2025 Home",
+        "price": "$55.00",
+        "image": "/assets/images/barcelona-ecuador-2025-home.webp",
+        "quantity": 1,
+        "selectedSize": "M",
+        "stock": 30,
+        "isOnSale": false,
+        "originalPrice": null,
+        "category": "general",
+        "addedAt": 1768848852213
+      },
+      {
+        "id": "P00068",
+        "title": "Ferrari F1 Team 2025",
+        "price": "$85.00",
+        "image": "/assets/images/ferrari-f1-team-2025.webp",
+        "quantity": 1,
+        "selectedSize": "M",
+        "stock": 20,
+        "isOnSale": false,
+        "originalPrice": null,
+        "category": "general",
+        "addedAt": 1768848872848
+      }
+    ],
+    "total": {
+      "subtotal": "140.00",
+      "shipping": "0.00",
+      "taxes": "21.00",
+      "total": "161.00",
+      "freeShipping": true,
+      "freeShippingThreshold": 50
+    },
+    "shippingData": {
+      "fullName": "Allan Mathias Martinez Medina",
+      "email": "am1805787@gmail.com",
+      "phone": "0987968923",
+      "country": "Ecuador",
+      "city": "Quito",
+      "address": "Av 9 de Octubre",
+      "postalCode": "220202"
+    },
+    "paymentMethod": {
+      "type": "card",
+      "last4": "7777"
+    },
+    "fecha": "2026-01-19T18:57:55.226Z",
+    "createdAt": "2026-01-19T18:57:55.226Z",
+    "tipo": "venta",
+    "notas": ""
+  },
+  {
+    "id": "P80629",
+    "orderNumber": "JC-1768849167862-9HYNC",
+    "userId": 3,
+    "status": "pending",
+    "estado": "pendiente",
+    "items": [
+      {
+        "id": "mercedes-amg-petronas",
+        "title": "Mercedes AMG Petronas",
+        "price": "$80.00",
+        "image": "/assets/images/camiseta-mercedes-amg.webp",
+        "quantity": 2,
+        "selectedSize": "M",
+        "stock": 25,
+        "isOnSale": false,
+        "originalPrice": null,
+        "category": "formula1",
+        "addedAt": 1768849115189
+      }
+    ],
+    "total": {
+      "subtotal": "160.00",
+      "shipping": "0.00",
+      "taxes": "24.00",
+      "total": "184.00",
+      "freeShipping": true,
+      "freeShippingThreshold": 50
+    },
+    "shippingData": {
+      "fullName": "Allan Mathias Martinez Medina",
+      "email": "am1805787@gmail.com",
+      "phone": "0987968923",
+      "country": "Ecuador",
+      "city": "Quito",
+      "address": "Av 9 de Octubre",
+      "postalCode": "220202"
+    },
+    "paymentMethod": {
+      "type": "card",
+      "last4": "7777"
+    },
+    "fecha": "2026-01-19T18:59:27.862Z",
+    "createdAt": "2026-01-19T18:59:27.862Z",
+    "tipo": "venta",
+    "notas": ""
+  },
+  {
+    "id": "P92557",
+    "orderNumber": "JC-1768849298107-AVWN1",
+    "userId": 3,
+    "status": "pending",
+    "estado": "pendiente",
+    "items": [
+      {
+        "id": "P00013",
+        "title": "Barcelona 1987 Local Retro",
+        "price": "$45.00",
+        "image": "/assets/images/barcelona-1987-local-retro.webp",
+        "quantity": 1,
+        "selectedSize": "XXL",
+        "stock": 24,
+        "isOnSale": false,
+        "originalPrice": null,
+        "category": "general",
+        "addedAt": 1768849206981
+      },
+      {
+        "id": "P00029",
+        "title": "Fc Barcelona 1999 Local Retro",
+        "price": "$45.00",
+        "image": "/assets/images/fc-barcelona-1999-local-retro.webp",
+        "quantity": 1,
+        "selectedSize": "M",
+        "stock": 25,
+        "isOnSale": false,
+        "originalPrice": null,
+        "category": "general",
+        "addedAt": 1768849249281
+      }
+    ],
+    "total": {
+      "subtotal": "90.00",
+      "shipping": "0.00",
+      "taxes": "13.50",
+      "total": "103.50",
+      "freeShipping": true,
+      "freeShippingThreshold": 50
+    },
+    "shippingData": {
+      "fullName": "Allan Mathias Martinez Medina",
+      "email": "am1805787@gmail.com",
+      "phone": "0987968923",
+      "country": "Ecuador",
+      "city": "Quito",
+      "address": "Av 9 de Octubre",
+      "postalCode": "726372"
+    },
+    "paymentMethod": {
+      "type": "card",
+      "last4": "7777"
+    },
+    "fecha": "2026-01-19T19:01:38.107Z",
+    "createdAt": "2026-01-19T19:01:38.107Z",
+    "tipo": "venta",
+    "notas": ""
+  },
+  {
+    "id": "P97146",
+    "orderNumber": "JC-1768849538185-UEZV2",
+    "userId": 3,
+    "status": "pending",
+    "estado": "pendiente",
+    "items": [
+      {
+        "id": "sauber-f1-team-2025",
+        "title": "Sauber F1 Team 2025",
+        "price": "$60.00",
+        "image": "/assets/images/sauber-f1-2025.webp",
+        "quantity": 1,
+        "selectedSize": "XXL",
+        "stock": 25,
+        "isOnSale": true,
+        "originalPrice": "$78.00",
+        "category": "formula1",
+        "addedAt": 1768849452313
+      },
+      {
+        "id": "P00013",
+        "title": "Barcelona 1987 Local Retro",
+        "price": "$45.00",
+        "image": "/assets/images/barcelona-1987-local-retro.webp",
+        "quantity": 1,
+        "selectedSize": "XXL",
+        "stock": 23,
+        "isOnSale": true,
+        "originalPrice": "$58.50",
+        "category": "futbol",
+        "addedAt": 1768849490541
+      }
+    ],
+    "total": {
+      "subtotal": "105.00",
+      "shipping": "0.00",
+      "taxes": "15.75",
+      "total": "120.75",
+      "freeShipping": true,
+      "freeShippingThreshold": 50
+    },
+    "shippingData": {
+      "fullName": "Allan Mathias Martinez Medina",
+      "email": "am1805787@gmail.com",
+      "phone": "0987968923",
+      "country": "Ecuador",
+      "city": "Quito",
+      "address": "Av 9 de Octubre",
+      "postalCode": "220202"
+    },
+    "paymentMethod": {
+      "type": "card",
+      "last4": "7777"
+    },
+    "fecha": "2026-01-19T19:05:38.185Z",
+    "createdAt": "2026-01-19T19:05:38.185Z",
+    "tipo": "venta",
+    "notas": ""
+  },
+  {
+    "id": "P80282",
+    "orderNumber": "JC-1768849912514-DKVSP",
+    "userId": 3,
+    "status": "pending",
+    "estado": "pendiente",
+    "items": [
+      {
+        "id": "P00010",
+        "title": "Argentina 2005 Local Retro",
+        "price": "$45.00",
+        "image": "/assets/images/argentina-2005-local-retro.webp",
+        "quantity": 2,
+        "selectedSize": "M",
+        "stock": 25,
+        "isOnSale": false,
+        "originalPrice": null,
+        "category": "general",
+        "addedAt": 1768849712835
+      }
+    ],
+    "total": {
+      "subtotal": "90.00",
+      "shipping": "0.00",
+      "taxes": "13.50",
+      "total": "103.50",
+      "freeShipping": true,
+      "freeShippingThreshold": 50
+    },
+    "shippingData": {
+      "fullName": "Maria Paz Astudillo ",
+      "email": "maria.paz.astudillo.2004@gmail.com",
+      "phone": "0998192196",
+      "country": "Ecuador",
+      "city": "Quito",
+      "address": "La Pampa",
+      "postalCode": "726372"
+    },
+    "paymentMethod": {
+      "type": "card",
+      "last4": "6666"
+    },
+    "fecha": "2026-01-19T19:11:52.515Z",
+    "createdAt": "2026-01-19T19:11:52.515Z",
+    "tipo": "venta",
+    "notas": ""
+  },
+  {
+    "id": "P43383",
+    "orderNumber": "JC-1768850025539-H0GJW",
+    "userId": 3,
+    "status": "pending",
+    "estado": "pendiente",
+    "items": [
+      {
+        "id": "P00071",
+        "title": "Red Bull Racing 2025",
+        "price": "$85.00",
+        "image": "/assets/images/red-bull-racing-2025.webp",
+        "quantity": 1,
+        "selectedSize": "M",
+        "stock": 20,
+        "isOnSale": false,
+        "originalPrice": null,
+        "category": "general",
+        "addedAt": 1768849968943
+      }
+    ],
+    "total": {
+      "subtotal": "85.00",
+      "shipping": "0.00",
+      "taxes": "12.75",
+      "total": "97.75",
+      "freeShipping": true,
+      "freeShippingThreshold": 50
+    },
+    "shippingData": {
+      "fullName": "Maria Paz Astudillo Narvaez",
+      "email": "maria.paz.astudillo.2004@gmail.com",
+      "phone": "0998192196",
+      "country": "Ecuador",
+      "city": "Quito",
+      "address": "La Pampa",
+      "postalCode": "726372"
+    },
+    "paymentMethod": {
+      "type": "card",
+      "last4": "7888"
+    },
+    "fecha": "2026-01-19T19:13:45.539Z",
+    "createdAt": "2026-01-19T19:13:45.539Z",
+    "tipo": "venta",
+    "notas": ""
+  },
+  {
+    "id": "P93042",
+    "orderNumber": "JC-1768850211523-W4M4Q",
+    "userId": 3,
+    "status": "pending",
+    "estado": "pendiente",
+    "items": [
+      {
+        "id": "P00033",
+        "title": "Inglaterra 2025 Home",
+        "price": "$60.00",
+        "image": "/assets/images/inglaterra-2025-home.webp",
+        "quantity": 1,
+        "selectedSize": "M",
+        "stock": 30,
+        "isOnSale": false,
+        "originalPrice": null,
+        "category": "general",
+        "addedAt": 1768850110204
+      },
+      {
+        "id": "P00030",
+        "title": "Fc Barcelona 2015 Local Retro",
+        "price": "$45.00",
+        "image": "/assets/images/fc-barcelona-2015-local-retro.webp",
+        "quantity": 1,
+        "selectedSize": "M",
+        "stock": 25,
+        "isOnSale": false,
+        "originalPrice": null,
+        "category": "general",
+        "addedAt": 1768850137946
+      }
+    ],
+    "total": {
+      "subtotal": "105.00",
+      "shipping": "0.00",
+      "taxes": "15.75",
+      "total": "120.75",
+      "freeShipping": true,
+      "freeShippingThreshold": 50
+    },
+    "shippingData": {
+      "fullName": "Maria Paz Astudillo",
+      "email": "maria.paz.astudillo.2004@gmail.com",
+      "phone": "0998192196",
+      "country": "Ecuador",
+      "city": "Quito",
+      "address": "La Pampa",
+      "postalCode": "54561"
+    },
+    "paymentMethod": {
+      "type": "card",
+      "last4": "5667"
+    },
+    "fecha": "2026-01-19T19:16:51.523Z",
+    "createdAt": "2026-01-19T19:16:51.523Z",
+    "tipo": "venta",
+    "notas": ""
+  },
+  {
+    "id": "P33113",
+    "orderNumber": "JC-1768850369994-9KY7S",
+    "userId": 3,
+    "status": "pending",
+    "estado": "pendiente",
+    "items": [
+      {
+        "id": "P00068",
+        "title": "Ferrari F1 Team 2025",
+        "price": "$85.00",
+        "image": "/assets/images/ferrari-f1-team-2025.webp",
+        "quantity": 1,
+        "selectedSize": "M",
+        "stock": 19,
+        "isOnSale": false,
+        "originalPrice": null,
+        "category": "general",
+        "addedAt": 1768850292248
+      },
+      {
+        "id": "P00021",
+        "title": "Brasil 2024 Local",
+        "price": "$45.00",
+        "image": "/assets/images/brasil-2024-local.webp",
+        "quantity": 1,
+        "selectedSize": "M",
+        "stock": 25,
+        "isOnSale": false,
+        "originalPrice": null,
+        "category": "general",
+        "addedAt": 1768850309380
+      }
+    ],
+    "total": {
+      "subtotal": "130.00",
+      "shipping": "0.00",
+      "taxes": "19.50",
+      "total": "149.50",
+      "freeShipping": true,
+      "freeShippingThreshold": 50
+    },
+    "shippingData": {
+      "fullName": "Mathias Freire",
+      "email": "mathias.freire@jerseyclub.ec",
+      "phone": "0998192196",
+      "country": "Ecuador",
+      "city": "Quito ",
+      "address": "La Pampa",
+      "postalCode": "54561"
+    },
+    "paymentMethod": {
+      "type": "card",
+      "last4": "3345"
+    },
+    "fecha": "2026-01-19T19:19:29.994Z",
+    "createdAt": "2026-01-19T19:19:29.994Z",
+    "tipo": "venta",
+    "notas": ""
   }
 ]

@@ -1,43 +1,45 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { getProductsByCategory } from '../models/httpClient';
 import PromoSection from "../components/PromoSection";
+// import footballProducts from "../data/footballProducts"; // Removido por sincronización estricta
 
 const PAGE_SIZE = 12;
-const CATEGORY_ID = 'C00004'; // Fútbol
+const CATEGORY_ID = 'FUT1  '; // Fútbol
 
 // Generar datos adicionales
 const generateProductData = (product, index) => {
   const rating = (3.5 + Math.random() * 1.5).toFixed(1);
   const reviews = Math.floor(100 + Math.random() * 2000);
-  const originalPrice = product.isOnSale
-    ? `$${(parseFloat(product.price.replace('$', '')) * 1.4).toFixed(2)}`
+
+  // FIX: Priorizar descuento de base de datos
+  const dbDiscount = parseFloat(product.descuento || product.discount || 0);
+  const hasDbDiscount = dbDiscount > 0;
+
+  // Sincronización Estricta: Solo si viene de la DB es oferta.
+  const isOnSale = hasDbDiscount;
+
+  const discount = dbDiscount;
+
+  const originalPrice = isOnSale
+    ? `$${(parseFloat(String(product.precio || product.price || 0).replace('$', '').replace(',', '')) / (1 - (discount / 100))).toFixed(2)}`
     : null;
-  const discount = product.isOnSale ? Math.floor(20 + Math.random() * 15) : 0;
+
   const isBestSeller = index % 7 === 0;
 
   return {
     ...product,
+    isOnSale, // Asegurar que el campo esté presente
     rating: parseFloat(rating),
     reviews,
     originalPrice,
     discount,
     isBestSeller,
-    stock: product.stock !== undefined ? product.stock : 0, // Stock real
+    stock: (product.stock !== undefined && product.stock > 0) ? product.stock : 25, // Asegurar stock mínimo de 25
   };
 };
 
-// Helper para generar slugs (igual que en Product.jsx)
-const generateSlug = (title) => {
-  if (!title) return '';
-  return title
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z0-9\s-]/g, '')
-    .trim()
-    .replace(/\s+/g, '-');
-};
+
 
 const ProductCard = ({ product }) => {
   const handleClick = () => {
@@ -59,13 +61,19 @@ const ProductCard = ({ product }) => {
     >
       <div className="relative">
         {product.isBestSeller && (
-          <div className="absolute top-0 left-0 z-20 bg-[#E10600] text-white text-[10px] sm:text-xs font-bold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-tl-lg rounded-br-lg">
-            ¡Oferta!
+          <div className="absolute top-0 left-0 z-20 bg-[#E10600] text-white text-[10px] sm:text-xs font-bold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-tl-lg rounded-br-lg shadow-md">
+            {product.isOnSale ? `¡Oferta! -${product.discount}%` : 'Best Seller'}
           </div>
         )}
         {product.isOnSale && !product.isBestSeller && (
-          <div className="absolute top-0 left-0 z-20 bg-[#BF1919] text-white text-[10px] sm:text-xs font-bold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-tl-lg rounded-br-lg">
+          <div className="absolute top-0 left-0 z-20 bg-[#BF1919] text-white text-[10px] sm:text-xs font-bold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-tl-lg rounded-br-lg shadow-md">
             -{product.discount}%
+          </div>
+        )}
+
+        {product.isOnSale && (
+          <div className="absolute top-0 right-0 z-20 bg-[#BF1919] text-white text-[10px] sm:text-xs font-bold px-1.5 sm:px-3 py-0.5 sm:py-1 rounded-tr-lg rounded-bl-lg shadow-md animate-pulse">
+            OFERTA
           </div>
         )}
 
@@ -73,10 +81,10 @@ const ProductCard = ({ product }) => {
           <figure className="relative aspect-square w-full overflow-hidden rounded-md bg-gray-50">
             <img
               className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-110"
-              src={product.imagen || product.image || '/assets/images/default.webp'}
+              src={product.imagen || product.image || 'https://storage.googleapis.com/imagenesjerseyclub/default.webp'}
               alt={product.nombre || product.title}
               loading="lazy"
-              onError={(e) => { e.target.src = '/assets/images/default.webp'; }}
+              onError={(e) => { e.target.src = 'https://storage.googleapis.com/imagenesjerseyclub/default.webp'; }}
             />
           </figure>
         </div>
@@ -97,16 +105,28 @@ const ProductCard = ({ product }) => {
           {product.isOnSale ? (
             <div className="space-y-0.5 sm:space-y-1">
               <div className="flex items-baseline gap-1 sm:gap-2 flex-wrap">
-                <span className="text-lg sm:text-2xl font-bold text-gray-900">{typeof product.precio === 'number' ? `$${product.precio}` : product.precio}</span>
-                <span className="text-[10px] sm:text-sm text-gray-500 line-through">{product.originalPrice}</span>
+                <span className="text-lg sm:text-2xl font-bold text-gray-900">
+                  {`$${(parseFloat(String(product.precio || product.price || 0).replace('$', '').replace(',', '')) || 0).toFixed(2)}`}
+                </span>
+                <span className="text-[10px] sm:text-sm text-gray-500 line-through">
+                  {product.originalPrice ? `$${(parseFloat(String(product.originalPrice).replace('$', '').replace(',', '')) || 0).toFixed(2)}` : ''}
+                </span>
               </div>
-              <p className="text-[10px] sm:text-xs text-[#E10600] font-medium">
-                ¡Oferta!
+              <p className="text-[10px] sm:text-xs text-[#E10600] font-bold">
+                ¡Oferta! -{product.discount}%
               </p>
             </div>
           ) : (
-            <span className="text-lg sm:text-2xl font-bold text-gray-900">{typeof product.precio === 'number' ? `$${product.precio}` : product.precio}</span>
+            <span className="text-lg sm:text-2xl font-bold text-gray-900">
+              {`$${(parseFloat(String(product.precio || product.price || 0).replace('$', '').replace(',', '')) || 0).toFixed(2)}`}
+            </span>
           )}
+        </div>
+
+        <div className="mt-1 mb-2">
+          <span className={`text-[10px] sm:text-xs font-medium ${product.stock <= 5 ? 'text-red-600' : 'text-[#007600]'}`}>
+            {product.stock <= 5 ? `¡Solo quedan ${product.stock}!` : `Stock: ${product.stock} unidades`}
+          </span>
         </div>
 
         <div className="mt-auto pt-2 sm:pt-3 w-full bg-[#495A72] group-hover:bg-[#2d2d44] text-white font-medium py-1.5 sm:py-2 px-2 sm:px-4 rounded-full text-[10px] sm:text-sm transition-colors shadow-sm text-center">
@@ -207,37 +227,34 @@ const Futbol = () => {
     onlyOffers: false,
     coleccion: null,
     tipo: null,
+    liga: null,
+    temporada: null,
   });
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // UNIFIED FETCH STRATEGY: Get all products, filter by category locally or let backend handle it
-  // Since we fixed getProductsByCategory in the backend, we can rely on it.
   useEffect(() => {
     const fetchProducts = async () => {
       setLoading(true);
       try {
+        let apiProducts = [];
         const response = await getProductsByCategory(CATEGORY_ID);
-        if (response.status === 'success' && Array.isArray(response.data)) {
-          // Normalizar e hidratar datos
-          const normalized = response.data.map((p, i) => ({
-            ...p,
-            price: typeof p.precio === 'number' ? `$${p.precio}` : p.precio || '$0',
-            title: p.nombre || p.title,
-            image: p.imagen || p.image || '/assets/images/default.webp'
-          }));
 
-          const enriched = normalized.map((p, i) => generateProductData(p, i));
-          setProducts(enriched);
-          setFilteredProducts(enriched);
-        } else {
-          console.warn("Respuesta inesperada al cargar productos:", response);
-          setProducts([]);
+        if (response.status === 'success' && Array.isArray(response.data)) {
+          apiProducts = response.data.map(p => ({
+            ...p,
+            source: 'api'
+          }));
         }
+
+        // Enriquecer datos
+        const enriched = apiProducts.map((p, i) => generateProductData(p, i));
+        setProducts(enriched);
+        setFilteredProducts(enriched);
       } catch (err) {
-        console.error('Error al cargar productos de Fútbol:', err);
+        console.error('Error al cargar productos de Fútbol desde la DB:', err);
         setProducts([]);
       } finally {
         setLoading(false);
@@ -253,33 +270,40 @@ const Futbol = () => {
     const onSale = searchParams.get('onSale');
     const coleccion = searchParams.get('coleccion');
     const tipo = searchParams.get('tipo');
+    const liga = searchParams.get('liga');
+    const temporada = searchParams.get('temporada');
 
-    const newFilters = { ...filters };
-    let hasChanges = false;
+    setFilters(prev => {
+      const newFilters = { ...prev };
+      let hasChanges = false;
 
-    if (equipo && !filters.teams.includes(equipo)) {
-      newFilters.teams = [equipo];
-      hasChanges = true;
-    }
+      if (equipo && !prev.teams.includes(equipo)) {
+        newFilters.teams = [equipo];
+        hasChanges = true;
+      }
+      if (onSale === 'true' && !prev.onlyOffers) {
+        newFilters.onlyOffers = true;
+        hasChanges = true;
+      }
+      if (coleccion && prev.coleccion !== coleccion) {
+        newFilters.coleccion = coleccion;
+        hasChanges = true;
+      }
+      if (tipo === 'retro' && prev.tipo !== 'retro') {
+        newFilters.tipo = 'retro';
+        hasChanges = true;
+      }
+      if (liga && prev.liga !== liga) {
+        newFilters.liga = liga;
+        hasChanges = true;
+      }
+      if (temporada && prev.temporada !== temporada) {
+        newFilters.temporada = temporada;
+        hasChanges = true;
+      }
 
-    if (onSale === 'true') {
-      newFilters.onlyOffers = true;
-      hasChanges = true;
-    }
-
-    if (coleccion) {
-      newFilters.coleccion = coleccion;
-      hasChanges = true;
-    }
-
-    if (tipo === 'retro') {
-      newFilters.tipo = 'retro';
-      hasChanges = true;
-    }
-
-    if (hasChanges) {
-      setFilters(newFilters);
-    }
+      return hasChanges ? newFilters : prev;
+    });
   }, [searchParams]);
 
   // Aplicar filtros
@@ -309,6 +333,33 @@ const Futbol = () => {
         return yearMatch && parseInt(yearMatch[1]) <= 2015;
       });
     }
+
+    if (filters.liga) {
+      if (filters.liga === 'Premier League') {
+        const premierTeams = ['City', 'Arsenal', 'Liverpool', 'Chelsea', 'United', 'Tottenham', 'Villa', 'Everton', 'Newcastle'];
+        result = result.filter(p =>
+          premierTeams.some(team => (p.nombre || p.title).toLowerCase().includes(team.toLowerCase()))
+        );
+      } else if (filters.liga === 'Selecciones') {
+        const nationalTeams = [
+          'Argentina', 'Alemania', 'Portugal', 'Francia', 'Brasil', 'Ecuador',
+          'España', 'Italia', 'Japon', 'Colombia', 'Uruguay', 'Mexico',
+          'Inglaterra', 'Holanda', 'Croacia', 'Belgica', 'Chile', 'Peru',
+          'Paraguay', 'Venezuela', 'Bolivia', 'Corea', 'Estados Unidos'
+        ];
+        result = result.filter(p =>
+          nationalTeams.some(team => (p.nombre || p.title).toLowerCase().includes(team.toLowerCase()))
+        );
+      }
+    }
+
+    if (filters.temporada) {
+      result = result.filter(p =>
+        (p.nombre || p.title).includes(filters.temporada)
+      );
+    }
+
+
 
     if (filters.priceRange) {
       result = result.filter(p => {
@@ -387,6 +438,8 @@ const Futbol = () => {
               <p className="text-sm text-gray-600">
                 {filteredProducts.length} resultados
                 {filters.teams.length > 0 && ` para "${filters.teams.join(', ')}"`}
+                {filters.liga && ` de ${filters.liga}`}
+                {filters.temporada && ` de la Temporada ${filters.temporada}`}
               </p>
             </div>
 

@@ -1,7 +1,8 @@
-import React, { useState, useMemo, useEffect } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
-// Importar productos y función toSlug desde fuente centralizada
-import { jerseyClubGeneratedProducts } from "../data/jerseyClubGeneratedProducts";
+import React, { useState, useEffect, useCallback } from "react";
+import { Link, useSearchParams } from "react-router-dom";
+import { getProductsByCategory } from '../models/httpClient';
+// Importar productos y función toSlug desde fuente centralizada - Removido por sincronización estricta
+// import { jerseyClubGeneratedProducts } from "../data/jerseyClubGeneratedProducts";
 
 const PAGE_SIZE = 12;
 
@@ -9,27 +10,48 @@ const PAGE_SIZE = 12;
 // LÓGICA DE PRODUCTOS JERSEY CLUB BRAND
 // ========================================
 
-// Usar productos generados desde la fuente centralizada
-const jerseyClubBaseProducts = jerseyClubGeneratedProducts;
+// Usar productos generados desde la fuente centralizada - Removido por sincronización estricta
+// const jerseyClubBaseProducts = jerseyClubGeneratedProducts;
+
+const CATEGORY_ID = 'JCB1  '; // Jersey Club Brand
 
 // Generar datos adicionales para estilo Amazon (igual que Fútbol)
 const generateProductData = (product, index) => {
   const rating = (3.5 + Math.random() * 1.5).toFixed(1);
   const reviews = Math.floor(50 + Math.random() * 500);
-  const originalPrice = product.isOnSale
-    ? `$${(parseFloat(product.price.replace('$', '')) * 1.3).toFixed(2)}`
+
+  // Normalizar campos entre fuente local y API (backend usa nombre/imagen/precio)
+  const price = product.price || (product.precio ? `$${product.precio}` : '$0.00');
+  const title = (product.nombre || product.title || "Producto Jersey Club").replace(/-/g, ' ');
+  const image = product.imagen || product.image || "https://storage.googleapis.com/imagenesjerseyclub/default.webp";
+  // FIX: Priorizar descuento de base de datos
+  const dbDiscount = parseFloat(product.descuento || product.discount || 0);
+  const hasDbDiscount = dbDiscount > 0;
+
+  // Sincronización Estricta: Solo si viene de la DB es oferta.
+  const isOnSale = hasDbDiscount;
+
+  const discount = dbDiscount;
+
+  const originalPrice = isOnSale
+    ? `$${(parseFloat(String(price).replace('$', '').replace(',', '')) / (1 - (discount / 100))).toFixed(2)}`
     : null;
-  const discount = product.isOnSale ? Math.floor(15 + Math.random() * 20) : 0;
   const isBestSeller = index % 3 === 0;
 
   return {
     ...product,
+    title,
+    nombre: title,
+    image,
+    imagen: image,
+    price,
+    isOnSale,
     rating: parseFloat(rating),
     reviews,
     originalPrice,
     discount,
     isBestSeller,
-    stock: product.stock !== undefined ? product.stock : 0, // Stock real
+    stock: (product.stock !== undefined && product.stock > 0) ? product.stock : 25, // Asegurar stock mínimo de 25
   };
 };
 
@@ -57,13 +79,19 @@ const ProductCard = ({ product }) => {
       {/* Badges superiores */}
       <div className="relative">
         {product.isBestSeller && (
-          <div className="absolute top-0 left-0 z-20 bg-[#E10600] text-white text-[10px] sm:text-xs font-bold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-tl-lg rounded-br-lg">
-            ¡Oferta!
+          <div className="absolute top-0 left-0 z-20 bg-[#E10600] text-white text-[10px] sm:text-xs font-bold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-tl-lg rounded-br-lg shadow-md">
+            {product.isOnSale ? `¡Oferta! -${product.discount}%` : 'Best Seller'}
           </div>
         )}
         {product.isOnSale && !product.isBestSeller && (
-          <div className="absolute top-0 left-0 z-20 bg-[#BF1919] text-white text-[10px] sm:text-xs font-bold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-tl-lg rounded-br-lg">
+          <div className="absolute top-0 left-0 z-20 bg-[#BF1919] text-white text-[10px] sm:text-xs font-bold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-tl-lg rounded-br-lg shadow-md">
             -{product.discount}%
+          </div>
+        )}
+
+        {product.isOnSale && (
+          <div className="absolute top-0 right-0 z-20 bg-[#BF1919] text-white text-[10px] sm:text-xs font-bold px-1.5 sm:px-3 py-0.5 sm:py-1 rounded-tr-lg rounded-bl-lg shadow-md animate-pulse">
+            OFERTA
           </div>
         )}
 
@@ -75,7 +103,7 @@ const ProductCard = ({ product }) => {
               src={product.image}
               alt={product.title}
               loading="lazy"
-              onError={(e) => { e.target.src = '/assets/images/default.webp'; }}
+              onError={(e) => { e.target.src = 'https://storage.googleapis.com/imagenesjerseyclub/default.webp'; }}
             />
           </figure>
         </div>
@@ -105,16 +133,28 @@ const ProductCard = ({ product }) => {
           {product.isOnSale ? (
             <div className="space-y-0.5 sm:space-y-1">
               <div className="flex items-baseline gap-1 sm:gap-2 flex-wrap">
-                <span className="text-lg sm:text-2xl font-bold text-gray-900">{product.price}</span>
-                <span className="text-[10px] sm:text-sm text-gray-500 line-through">{product.originalPrice}</span>
+                <span className="text-lg sm:text-2xl font-bold text-gray-900">
+                  {`$${(parseFloat(String(product.price || 0).replace('$', '').replace(',', '')) || 0).toFixed(2)}`}
+                </span>
+                <span className="text-[10px] sm:text-sm text-gray-500 line-through">
+                  {product.originalPrice ? `$${(parseFloat(String(product.originalPrice).replace('$', '').replace(',', '')) || 0).toFixed(2)}` : ''}
+                </span>
               </div>
-              <p className="text-[10px] sm:text-xs text-[#E10600] font-medium">
-                ¡Oferta!
+              <p className="text-[10px] sm:text-xs text-[#E10600] font-bold">
+                ¡Oferta! -{product.discount}%
               </p>
             </div>
           ) : (
-            <span className="text-lg sm:text-2xl font-bold text-gray-900">{product.price}</span>
+            <span className="text-lg sm:text-2xl font-bold text-gray-900">
+              {`$${(parseFloat(String(product.price || 0).replace('$', '').replace(',', '')) || 0).toFixed(2)}`}
+            </span>
           )}
+        </div>
+
+        <div className="mt-1 mb-2">
+          <span className={`text-[10px] sm:text-xs font-medium ${product.stock <= 5 ? 'text-red-600' : 'text-[#007600]'}`}>
+            {product.stock <= 5 ? `¡Solo quedan ${product.stock}!` : `Stock: ${product.stock} unidades`}
+          </span>
         </div>
 
         {/* Botón ver producto */}
@@ -249,64 +289,75 @@ const JerseyClubBrand = () => {
     priceRange: null,
     onlyOffers: false,
   });
+  const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  // Carga Estricta: Únicamente API (Base de Datos)
+  useEffect(() => {
+    const fetchProducts = async () => {
+      setLoading(true);
+      try {
+        let apiProducts = [];
+        const response = await getProductsByCategory(CATEGORY_ID);
+
+        if (response.status === 'success' && Array.isArray(response.data)) {
+          apiProducts = response.data.map(p => ({
+            ...p,
+            source: 'api'
+          }));
+        }
+
+        // Enriquecer datos
+        const enriched = apiProducts.map((p, i) => generateProductData(p, i));
+        setProducts(enriched);
+        setFilteredProducts(enriched);
+      } catch (err) {
+        console.error('Error al procesar productos de Jersey Club desde la DB:', err);
+        setProducts([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
 
   // Leer query params de la URL y aplicar filtros iniciales
   useEffect(() => {
     const tipo = searchParams.get('tipo');
     const categoria = searchParams.get('categoria');
-    const nuevo = searchParams.get('nuevo');
-    const destacado = searchParams.get('destacado');
 
-    const newFilters = { ...filters };
-    let hasChanges = false;
+    setFilters(prev => {
+      const newFilters = { ...prev };
+      let hasChanges = false;
 
-    // Filtro por tipo de producto (camisetas, accesorios)
-    if (tipo) {
-      // Mapear tipo a categoría interna si es necesario
-      const tipoMap = {
-        'camisetas': 'Camisetas',
-        'accesorios': 'Accesorios',
-      };
-      const mappedTipo = tipoMap[tipo.toLowerCase()] || tipo;
-      if (!filters.categories.includes(mappedTipo)) {
-        newFilters.categories = [mappedTipo];
-        hasChanges = true;
+      if (tipo) {
+        const tipoMap = { 'camisetas': 'Camisetas', 'accesorios': 'Accesorios' };
+        const mappedTipo = tipoMap[tipo.toLowerCase()] || tipo;
+        if (!prev.categories.includes(mappedTipo)) {
+          newFilters.categories = [mappedTipo];
+          hasChanges = true;
+        }
       }
-    }
 
-    // Filtro por categoría de género (hombre, mujer, niños)
-    if (categoria) {
-      const generoMap = {
-        'hombre': 'Hombre',
-        'mujer': 'Mujer',
-        'ninos': 'Niños',
-      };
-      const mappedGenero = generoMap[categoria.toLowerCase()] || categoria;
-      if (!filters.genders.includes(mappedGenero)) {
-        newFilters.genders = [mappedGenero];
-        hasChanges = true;
+      if (categoria) {
+        const generoMap = { 'hombre': 'Hombre', 'mujer': 'Mujer', 'ninos': 'Niños' };
+        const mappedGenero = generoMap[categoria.toLowerCase()] || categoria;
+        if (!prev.genders.includes(mappedGenero)) {
+          newFilters.genders = [mappedGenero];
+          hasChanges = true;
+        }
       }
-    }
 
-    // Nuevo lanzamientos o destacados podrían aplicar ordenamiento
-    // Por ahora no modificamos los filtros para estos
-
-    if (hasChanges) {
-      setFilters(newFilters);
-    }
-  }, [searchParams]); // Solo ejecutar cuando cambian los params
-
-  // Procesar productos con datos adicionales
-  const enrichedProducts = useMemo(() =>
-    jerseyClubBaseProducts.map((p, i) => generateProductData(p, i)),
-    []
-  );
+      return hasChanges ? newFilters : prev;
+    });
+  }, [searchParams]);
 
   // Aplicar filtros
-  const applyFilters = () => {
-    let result = [...enrichedProducts];
+  const applyFilters = useCallback(() => {
+    let result = [...products];
 
     if (filters.categories.length > 0) {
       result = result.filter(p => filters.categories.includes(p.category));
@@ -322,7 +373,8 @@ const JerseyClubBrand = () => {
 
     if (filters.priceRange) {
       result = result.filter(p => {
-        const price = parseFloat(p.price.replace('$', ''));
+        const priceStr = typeof p.price === 'string' ? p.price : `$${p.price}`;
+        const price = parseFloat(priceStr.replace('$', ''));
         return price >= filters.priceRange.min && price <= filters.priceRange.max;
       });
     }
@@ -330,10 +382,18 @@ const JerseyClubBrand = () => {
     // Ordenar
     switch (sortBy) {
       case "price-low":
-        result.sort((a, b) => parseFloat(a.price.replace('$', '')) - parseFloat(b.price.replace('$', '')));
+        result.sort((a, b) => {
+          const pA = parseFloat(String(a.price).replace('$', ''));
+          const pB = parseFloat(String(b.price).replace('$', ''));
+          return pA - pB;
+        });
         break;
       case "price-high":
-        result.sort((a, b) => parseFloat(b.price.replace('$', '')) - parseFloat(a.price.replace('$', '')));
+        result.sort((a, b) => {
+          const pA = parseFloat(String(a.price).replace('$', ''));
+          const pB = parseFloat(String(b.price).replace('$', ''));
+          return pB - pA;
+        });
         break;
       case "rating":
         result.sort((a, b) => b.rating - a.rating);
@@ -346,12 +406,12 @@ const JerseyClubBrand = () => {
     }
 
     return result;
-  };
+  }, [products, filters, sortBy]);
 
   useEffect(() => {
     setFilteredProducts(applyFilters());
     setCurrentPage(1);
-  }, [enrichedProducts, filters, sortBy]);
+  }, [applyFilters]);
 
   const totalPages = Math.ceil(filteredProducts.length / PAGE_SIZE);
   const pagedProducts = filteredProducts.slice(
@@ -368,6 +428,19 @@ const JerseyClubBrand = () => {
     if (currentPage < totalPages) setCurrentPage(currentPage + 1);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-white pt-32 pb-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-center items-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1a1a2e]"></div>
+            <span className="ml-3 text-gray-600">Cargando productos de la marca...</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-100">
@@ -472,8 +545,8 @@ const JerseyClubBrand = () => {
                           window.scrollTo({ top: 0, behavior: 'smooth' });
                         }}
                         className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg text-xs sm:text-sm font-medium transition-colors ${currentPage === pageNum
-                            ? "bg-[#1a1a2e] text-white"
-                            : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
+                          ? "bg-[#1a1a2e] text-white"
+                          : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
                           }`}
                       >
                         {pageNum}

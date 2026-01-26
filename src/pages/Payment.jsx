@@ -119,7 +119,9 @@ export default function Payment() {
 
     // Formateo especial para ciertos campos
     if (name === 'cardNumber') {
-      formattedValue = value.replace(/\s/g, '').replace(/(\d{4})/g, '$1 ').trim();
+      // Remove any non‑digit characters, then format as groups of 4 digits
+      const digitsOnly = value.replace(/\D/g, '');
+      formattedValue = digitsOnly.replace(/(\d{4})/g, '$1 ').trim();
       if (formattedValue.length > 19) formattedValue = formattedValue.slice(0, 19);
     }
 
@@ -393,13 +395,6 @@ export default function Payment() {
                       } ${isProcessing ? 'bg-gray-100' : 'bg-white'}`}
                   >
                     <option value="Ecuador">Ecuador</option>
-                    <option value="Colombia">Colombia</option>
-                    <option value="Perú">Perú</option>
-                    <option value="Chile">Chile</option>
-                    <option value="Argentina">Argentina</option>
-                    <option value="México">México</option>
-                    <option value="Estados Unidos">Estados Unidos</option>
-                    <option value="España">España</option>
                   </select>
                 </div>
 

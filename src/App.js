@@ -30,6 +30,7 @@ import AdminUsuarios from "./pages/AdminUsuarios";
 import AdminOrdenes from "./pages/AdminOrdenes";
 import AdminOrdenesCompra from "./pages/AdminOrdenesCompra";
 import AdminOrdenesVenta from "./pages/AdminOrdenesVenta";
+import POS from "./pages/POS";
 
 // Estilos
 import "./styles/main.css";
@@ -67,6 +68,15 @@ function App() {
         <Route path="/product/:id" element={<Product />} />
 
         {/* Ruta de administración de productos (CRUD) */}
+        <Route path="/admin/pos" element={
+          <ProtectedRoute requireAdmin>
+            <React.Suspense fallback={<div>Cargando POS...</div>}>
+              {/* Lazy load POS if needed or direct import, here we use direct import but need to add it to imports */}
+              <POS />
+            </React.Suspense>
+          </ProtectedRoute>
+        } />
+
         <Route path="/admin/productos" element={
           <ProtectedRoute requireAdmin>
             <AdminProductos />

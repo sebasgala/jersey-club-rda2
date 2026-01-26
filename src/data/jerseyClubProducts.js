@@ -6,7 +6,7 @@ const jerseyClubProducts = [
   {
     id: "jcb-1",
     title: "Buzo Compresión Hombre Jersey Club",
-    image: "/assets/images/buzo-compresion-hombre-jersey-club.webp",
+    image: "https://storage.googleapis.com/imagenesjerseyclub/buzo-compresion-hombre-jersey-club.webp",
     price: "$35.00",
     isOnSale: false,
     category: "Buzos",
@@ -16,7 +16,7 @@ const jerseyClubProducts = [
   {
     id: "jcb-2",
     title: "Camiseta Deportiva Hombre Jersey Club",
-    image: "/assets/images/camiseta-deportiva-hombre-jersey-club.webp",
+    image: "https://storage.googleapis.com/imagenesjerseyclub/camiseta-deportiva-hombre-jersey-club.webp",
     price: "$28.00",
     isOnSale: true,
     category: "Camisetas",
@@ -26,7 +26,7 @@ const jerseyClubProducts = [
   {
     id: "jcb-3",
     title: "Camiseta Deportiva Mujer Jersey Club",
-    image: "/assets/images/camiseta-deportiva-mujer-jersey-club.webp",
+    image: "https://storage.googleapis.com/imagenesjerseyclub/camiseta-deportiva-mujer-jersey-club.webp",
     price: "$28.00",
     isOnSale: true,
     category: "Camisetas",
@@ -36,7 +36,7 @@ const jerseyClubProducts = [
   {
     id: "jcb-4",
     title: "Gorra Running Jersey Club",
-    image: "/assets/images/gorra-running-jersey-club.webp",
+    image: "https://storage.googleapis.com/imagenesjerseyclub/gorra-running-jersey-club.webp",
     price: "$18.00",
     isOnSale: false,
     category: "Accesorios",
@@ -46,7 +46,7 @@ const jerseyClubProducts = [
   {
     id: "jcb-5",
     title: "Medias Running Jersey Club",
-    image: "/assets/images/medias-running-jersey-club.webp",
+    image: "https://storage.googleapis.com/imagenesjerseyclub/medias-running-jersey-club.webp",
     price: "$12.00",
     isOnSale: true,
     category: "Accesorios",
@@ -56,7 +56,7 @@ const jerseyClubProducts = [
   {
     id: "jcb-6",
     title: "Pantaloneta Deportiva Hombre Jersey Club",
-    image: "/assets/images/pantaloneta-deportiva-hombre-jersey-club.webp",
+    image: "https://storage.googleapis.com/imagenesjerseyclub/pantaloneta-deportiva-hombre-jersey-club.webp",
     price: "$22.00",
     isOnSale: false,
     category: "Pantalonetas",
@@ -66,7 +66,7 @@ const jerseyClubProducts = [
   {
     id: "jcb-7",
     title: "Pantaloneta Running Hombre Jersey Club",
-    image: "/assets/images/pantaloneta-running-hombre-jersey-club.webp",
+    image: "https://storage.googleapis.com/imagenesjerseyclub/pantaloneta-running-hombre-jersey-club.webp",
     price: "$25.00",
     isOnSale: true,
     category: "Pantalonetas",

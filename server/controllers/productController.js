@@ -12,7 +12,39 @@ import { prisma } from '../prisma/client.js';
  */
 const transformProduct = (producto) => {
   if (!producto) return null;
-  
+
+  // Lógica de mapeo de imágenes para productos de F1 y otros
+  const getImageUrl = (name, category, existingImage) => {
+    // Solo retornar la imagen existente si es una URL de nube válida (no localhost)
+    if (existingImage && existingImage.startsWith('http') && !existingImage.includes('localhost')) return existingImage;
+    if (existingImage && existingImage.includes('gs://')) return existingImage;
+
+    // Normalizar para comparación (quitar tildes y casos especiales)
+    const normalizeSearch = (str) => str.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+    const nameNorm = normalizeSearch(name || "");
+
+    // 1. Mapeos EXACTOS solicitados por el usuario
+    if (nameNorm.includes('mclaren f1 lando norris campeon 2025')) return 'https://storage.googleapis.com/imagenesjerseyclub/norris.webp';
+    if (nameNorm.includes('mclaren f1 racing team 2025')) return 'https://storage.googleapis.com/imagenesjerseyclub/mclared-f1-racing.webp';
+    if (nameNorm.includes('max verstappen 2025 special edition')) return 'https://storage.googleapis.com/imagenesjerseyclub/red-bull-racing-2025.webp';
+    if (nameNorm.includes('mercedes amg petronas')) return 'https://storage.googleapis.com/imagenesjerseyclub/camiseta-mercedes-amg.webp';
+    if (nameNorm.includes('alpine f1 team 2025')) return 'https://storage.googleapis.com/imagenesjerseyclub/alpine-f1-2025.webp';
+    if (nameNorm.includes('aston martin f1 team polo 2024')) return 'https://storage.googleapis.com/imagenesjerseyclub/polo-aston-martin-f1-team-2024.webp';
+    if (nameNorm.includes('sauber f1 team 2025')) return 'https://storage.googleapis.com/imagenesjerseyclub/sauber-f1-2025.webp';
+
+    // 2. Mapeos por palabras clave (Fallback secundario)
+    if (nameNorm.includes('lando norris')) return 'https://storage.googleapis.com/imagenesjerseyclub/norris.webp';
+    if (nameNorm.includes('mclaren') || nameNorm.includes('mclared')) return 'https://storage.googleapis.com/imagenesjerseyclub/mclared-f1-racing.webp';
+    if (nameNorm.includes('ferrari')) return 'https://storage.googleapis.com/imagenesjerseyclub/ferrari-f1-team-2025.webp';
+    if (nameNorm.includes('red bull')) return 'https://storage.googleapis.com/imagenesjerseyclub/red-bull-racing-2025.webp';
+    if (nameNorm.includes('williams')) return 'https://storage.googleapis.com/imagenesjerseyclub/williams-racing-2025.webp';
+    if (nameNorm.includes('haas')) return 'https://storage.googleapis.com/imagenesjerseyclub/haas-f1-team-2025.webp';
+
+    // 3. Fallback basado en slug
+    const slug = nameNorm.replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-');
+    return `https://storage.googleapis.com/imagenesjerseyclub/${slug}.webp`;
+  };
+
   return {
     id: producto.id_producto,
     name: producto.prd_nombre || 'Sin nombre',
@@ -22,14 +54,16 @@ const transformProduct = (producto) => {
     minStock: producto.prd_stockminimo || 5,
     category: producto.categoria?.cat_nombre || producto.id_categoria || 'Sin categoría',
     categoryId: producto.id_categoria,
-    image: `/assets/images/jersey-placeholder.webp`,
+    image: getImageUrl(producto.prd_nombre, producto.id_categoria, producto.prd_imagen),
+    imagen: getImageUrl(producto.prd_nombre, producto.id_categoria, producto.prd_imagen),
     active: producto.prd_activo,
     createdAt: producto.prd_createdat,
     updatedAt: producto.prd_updatedat,
     // Campos adicionales para compatibilidad
     featured: true,
     isNew: true,
-    onSale: false
+    onSale: (parseFloat(producto.prd_descuento) > 0),
+    descuento: parseFloat(producto.prd_descuento) || 0
   };
 };
 
@@ -134,7 +168,7 @@ const getOnSale = async (req, res, next) => {
  */
 const getById = async (req, res, next) => {
   try {
-    const producto = await prisma.producto.findUnique({ 
+    const producto = await prisma.producto.findUnique({
       where: { id_producto: req.params.id },
       include: { categoria: true }
     });
@@ -161,7 +195,7 @@ const getById = async (req, res, next) => {
  */
 const getBySlug = async (req, res, next) => {
   try {
-    const producto = await prisma.producto.findFirst({ 
+    const producto = await prisma.producto.findFirst({
       where: { prd_nombre: { contains: req.params.slug, mode: 'insensitive' } },
       include: { categoria: true }
     });
@@ -188,8 +222,8 @@ const getBySlug = async (req, res, next) => {
  */
 const create = async (req, res, next) => {
   try {
-    const { name, description, price, stock, minStock, categoryId } = req.body;
-    
+    const { name, description, price, stock, minStock, categoryId, imagen, descuento } = req.body;
+
     // Validar que el precio sea mayor o igual a 0
     if (price < 0) {
       return res.status(400).json({ error: "El precio del producto debe ser mayor o igual a 0." });
@@ -198,8 +232,8 @@ const create = async (req, res, next) => {
     // Generar ID único
     const count = await prisma.producto.count();
     const newId = `P${String(count + 1).padStart(5, '0')}`;
-    
-    const producto = await prisma.producto.create({ 
+
+    const producto = await prisma.producto.create({
       data: {
         id_producto: newId,
         prd_nombre: name,
@@ -207,7 +241,9 @@ const create = async (req, res, next) => {
         prd_precio: price,
         prd_stock: stock || 0,
         prd_stockminimo: minStock || 5,
-        id_categoria: categoryId || null
+        id_categoria: categoryId || null,
+        prd_imagen: imagen || null,
+        prd_descuento: descuento || 0
       },
       include: { categoria: true }
     });
@@ -228,8 +264,8 @@ const create = async (req, res, next) => {
  */
 const update = async (req, res, next) => {
   try {
-    const { name, description, price, active } = req.body;
-    
+    const { name, description, price, active, imagen, descuento, stock, categoryId } = req.body;
+
     // Validar que el precio sea mayor o igual a 0
     if (price < 0) {
       return res.status(400).json({ error: "El precio del producto debe ser mayor o igual a 0." });
@@ -240,10 +276,14 @@ const update = async (req, res, next) => {
     if (description !== undefined) updateData.prd_descripcion = description;
     if (price !== undefined) updateData.prd_precio = price;
     if (active !== undefined) updateData.prd_activo = active;
+    if (imagen !== undefined) updateData.prd_imagen = imagen;
+    if (descuento !== undefined) updateData.prd_descuento = descuento;
+    if (stock !== undefined) updateData.prd_stock = stock;
+    if (categoryId !== undefined) updateData.id_categoria = categoryId;
     updateData.prd_updatedat = new Date();
 
-    const producto = await prisma.producto.update({ 
-      where: { id_producto: req.params.id }, 
+    const producto = await prisma.producto.update({
+      where: { id_producto: req.params.id },
       data: updateData,
       include: { categoria: true }
     });

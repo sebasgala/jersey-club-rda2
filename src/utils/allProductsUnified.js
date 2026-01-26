@@ -30,7 +30,27 @@ const generateProductId = (product, index, prefix) => {
 const normalizeProduct = (product, index, source, category) => {
   const id = generateProductId(product, index, source);
   const name = product.nombre || product.title || product.name || "";
-  const image = product.imagen || product.image || "/assets/images/default.webp";
+  const image = product.imagen || product.image || "https://storage.googleapis.com/imagenesjerseyclub/gs://imagenesjerseyclub/default.webp";
+
+  // Formatear precio para asegurar que tenga el signo $ y dos decimales
+  const rawPrice = product.price || product.precio;
+  let numericPrice = 0;
+
+  if (typeof rawPrice === 'number') {
+    numericPrice = rawPrice;
+  } else if (typeof rawPrice === 'string') {
+    numericPrice = parseFloat(rawPrice.replace('$', '').replace(',', '')) || 0;
+  }
+
+  const formattedPrice = `$${numericPrice.toFixed(2)}`;
+
+  // Campos para filtrado
+  // Si NO tiene la propiedad definida, asignamos un 25% de probabilidad de oferta de forma pseudo-aleatoria pero consistente
+  const randomSale = (index % 4 === 0);
+  const isOnSale = product.isOnSale !== undefined ? product.isOnSale : randomSale;
+
+  const discount = product.discount || (isOnSale ? (15 + (index % 4) * 5) : 0);
+
   return {
     ...product,
     id,
@@ -44,9 +64,11 @@ const normalizeProduct = (product, index, source, category) => {
     category: product.category || category,
     source, // 'fb' = fútbol, 'f1' = fórmula 1, 'jcb' = jersey club, 'db' = backend
     // Campos para filtrado
-    isOnSale: product.isOnSale || product.onSale || false,
-    price: product.price || product.precio || "$0.00",
-    precio: product.precio || product.price || "$0.00",
+    isOnSale: isOnSale,
+    price: formattedPrice,
+    precio: formattedPrice,
+    discount: discount,
+    stock: (product.stock !== undefined && product.stock > 0) ? product.stock : 25,
   };
 };
 

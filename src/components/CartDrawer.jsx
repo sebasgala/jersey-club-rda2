@@ -12,7 +12,7 @@ import OrderSummary from './OrderSummary';
  */
 export default function CartDrawer({ isOpen, onClose }) {
   const { cartItems, getCartCount, getCartTotal } = useCart();
-  
+
   const itemCount = getCartCount();
   const totals = getCartTotal();
   const isEmpty = cartItems.length === 0;
@@ -22,12 +22,12 @@ export default function CartDrawer({ isOpen, onClose }) {
     const handleEsc = (e) => {
       if (e.key === 'Escape') onClose();
     };
-    
+
     if (isOpen) {
       document.addEventListener('keydown', handleEsc);
       document.body.style.overflow = 'hidden';
     }
-    
+
     return () => {
       document.removeEventListener('keydown', handleEsc);
       document.body.style.overflow = '';
@@ -39,17 +39,16 @@ export default function CartDrawer({ isOpen, onClose }) {
   return (
     <>
       {/* Overlay */}
-      <div 
+      <div
         className="fixed inset-0 bg-black/50 z-40 transition-opacity duration-300"
         onClick={onClose}
         aria-hidden="true"
       />
-      
+
       {/* Drawer */}
-      <div 
-        className={`fixed top-0 right-0 h-full w-full max-w-md bg-white z-50 shadow-2xl transform transition-transform duration-300 ${
-          isOpen ? 'translate-x-0' : 'translate-x-full'
-        }`}
+      <div
+        className={`fixed top-0 right-0 h-full w-full max-w-md bg-white z-50 shadow-2xl transform transition-transform duration-300 ${isOpen ? 'translate-x-0' : 'translate-x-full'
+          }`}
         role="dialog"
         aria-modal="true"
         aria-labelledby="cart-drawer-title"
@@ -69,7 +68,7 @@ export default function CartDrawer({ isOpen, onClose }) {
             </svg>
           </button>
         </div>
-        
+
         {/* Content */}
         <div className="flex flex-col h-[calc(100%-64px)]">
           {/* Lista de productos o estado vacío */}
@@ -98,10 +97,10 @@ export default function CartDrawer({ isOpen, onClose }) {
                 </p>
                 <div className="divide-y divide-gray-200">
                   {cartItems.slice(0, 5).map((item, index) => (
-                    <CartItem 
-                      key={`${item.id}-${item.selectedSize}-${index}`} 
-                      item={item} 
-                      compact 
+                    <CartItem
+                      key={`${item.id}-${item.selectedSize}-${index}`}
+                      item={item}
+                      compact
                     />
                   ))}
                 </div>
@@ -111,14 +110,16 @@ export default function CartDrawer({ isOpen, onClose }) {
                   </p>
                 )}
               </div>
-              
+
               {/* Resumen y botones */}
               <div className="border-t border-gray-200 p-4 bg-gray-50">
                 <div className="flex justify-between mb-4">
                   <span className="font-medium text-gray-700">Subtotal</span>
-                  <span className="font-bold text-[#B12704]">${totals.subtotal}</span>
+                  <span className="font-bold text-[#B12704]">
+                    {`$${(parseFloat(String(totals.subtotal || 0).replace('$', '').replace(',', '')) || 0).toFixed(2)}`}
+                  </span>
                 </div>
-                
+
                 {totals.freeShipping ? (
                   <p className="text-sm text-[#007600] font-medium mb-4">
                     ✓ Envío GRATIS aplicado
@@ -128,7 +129,7 @@ export default function CartDrawer({ isOpen, onClose }) {
                     Añade ${(totals.freeShippingThreshold - parseFloat(totals.subtotal)).toFixed(2)} más para envío gratis
                   </p>
                 )}
-                
+
                 <div className="space-y-2">
                   <Link
                     to="/cart"

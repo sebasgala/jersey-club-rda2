@@ -68,6 +68,9 @@ export function CartProvider({ children }) {
       return false;
     }
 
+    const stockAvailable = product.stock || 0;
+    let allowed = true;
+
     setCartItems(prevItems => {
       // Buscar si ya existe el item con mismo id y talla
       const existingIndex = prevItems.findIndex(
@@ -75,13 +78,27 @@ export function CartProvider({ children }) {
       );
 
       if (existingIndex > -1) {
+        const currentQty = prevItems[existingIndex].quantity;
+        if (currentQty + quantity > stockAvailable) {
+          alert(`Lo sentimos, solo hay ${stockAvailable} unidades disponibles de este producto. Ya tienes ${currentQty} en el carrito.`);
+          allowed = false;
+          return prevItems;
+        }
+
         // Actualizar cantidad del item existente
         const updatedItems = [...prevItems];
         updatedItems[existingIndex] = {
           ...updatedItems[existingIndex],
-          quantity: updatedItems[existingIndex].quantity + quantity
+          quantity: currentQty + quantity,
+          stock: stockAvailable // Actualizar stock por si acaso
         };
         return updatedItems;
+      }
+
+      if (quantity > stockAvailable) {
+        alert(`Lo sentimos, solo hay ${stockAvailable} unidades disponibles de este producto.`);
+        allowed = false;
+        return prevItems;
       }
 
       // Agregar nuevo item
@@ -89,9 +106,10 @@ export function CartProvider({ children }) {
         id: product.id,
         title: product.title || product.name || 'Producto sin nombre',
         price: product.price,
-        image: product.image || product.imageSrc || '/assets/images/default.webp',
+        image: product.image || product.imageSrc || 'https://storage.googleapis.com/imagenesjerseyclub/gs://imagenesjerseyclub/default.webp',
         quantity,
         selectedSize,
+        stock: stockAvailable,
         isOnSale: product.isOnSale || false,
         originalPrice: product.originalPrice || null,
         category: product.category || 'general',
@@ -101,7 +119,7 @@ export function CartProvider({ children }) {
       return [...prevItems, newItem];
     });
 
-    return true;
+    return allowed;
   }, []);
 
   /**
@@ -131,8 +149,13 @@ export function CartProvider({ children }) {
       return prevItems.map(item => {
         const matchesId = item.id === productId;
         const matchesSize = selectedSize ? item.selectedSize === selectedSize : true;
-        
+
         if (matchesId && matchesSize) {
+          const stockLimit = item.stock || 999;
+          if (newQuantity > stockLimit) {
+            alert(`Solo hay ${stockLimit} unidades disponibles.`);
+            return { ...item, quantity: stockLimit };
+          }
           return { ...item, quantity: newQuantity };
         }
         return item;
@@ -205,18 +228,18 @@ export function CartProvider({ children }) {
     isLoading,
     isCartOpen,
     setIsCartOpen,
-    
+
     // Acciones
     addToCart,
     removeFromCart,
     updateQuantity,
     clearCart,
-    
+
     // Getters
     getCartTotal,
     getCartCount,
     isInCart,
-    
+
     // Configuración
     config: CART_CONFIG
   };

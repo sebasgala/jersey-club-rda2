@@ -63,6 +63,31 @@ export default function AdminOrdenesCompra() {
     }
   }, []);
 
+  // Agregar producto a la orden
+  const handleAddProduct = useCallback((product) => {
+    if (!product) return;
+
+    // Evitar duplicados
+    if (currentOrder.items.find(item => String(item.id) === String(product.id))) {
+      return;
+    }
+
+    const newItem = {
+      id: product.id,
+      nombre: product.nombre || product.title,
+      cantidad: 1,
+      precioCompra: product.precio || product.price || 0,
+      stockActual: product.stock || 0
+    };
+
+    setCurrentOrder(prev => ({
+      ...prev,
+      items: [...prev.items, newItem]
+    }));
+
+    setProductSearch(''); // Limpiar búsqueda
+  }, [currentOrder.items]);
+
   // Cargar productos disponibles
   const fetchProductos = useCallback(async () => {
     try {
@@ -135,31 +160,6 @@ export default function AdminOrdenesCompra() {
       setFormErrors(prev => ({ ...prev, [name]: null }));
     }
   };
-
-  // Agregar producto a la orden
-  const handleAddProduct = useCallback((product) => {
-    if (!product) return;
-
-    // Evitar duplicados
-    if (currentOrder.items.find(item => String(item.id) === String(product.id))) {
-      return;
-    }
-
-    const newItem = {
-      id: product.id,
-      nombre: product.nombre || product.title,
-      cantidad: 1,
-      precioCompra: product.precio || product.price || 0,
-      stockActual: product.stock || 0
-    };
-
-    setCurrentOrder(prev => ({
-      ...prev,
-      items: [...prev.items, newItem]
-    }));
-
-    setProductSearch(''); // Limpiar búsqueda
-  }, [currentOrder.items]);
 
   // Actualizar cantidad de producto
   const handleProductQuantityChange = (productId, cantidad) => {

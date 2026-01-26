@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getProducts, createProduct, updateProduct, deleteProduct } from '../models/httpClient';
 import { useAuth } from '../context/AuthContext';
+// import { getAllProductsUnified } from '../utils/allProductsUnified'; // Removido por sincronización estricta
 
 /**
  * AdminProductos - Página de administración CRUD de productos
@@ -23,16 +24,17 @@ const initialProductState = {
   categoryId: '',
   imagen: '',
   stock: '',
+  descuento: 0,
   tallas: 'S,M,L,XL',
 };
 
 // Mapeo de categorías (ID -> Nombre para mostrar)
 // Los IDs deben coincidir con los de la base de datos
 const CATEGORIAS = [
-  { id: 'C00004', nombre: 'Fútbol' },
-  { id: 'C00005', nombre: 'Fórmula 1' },
-  { id: 'C00007', nombre: 'Jersey Club Brand' },
-  { id: 'C00006', nombre: 'Accesorios' }
+  { id: 'FUT1  ', nombre: 'Fútbol' },
+  { id: 'F1-1  ', nombre: 'Fórmula 1' },
+  { id: 'JCB1  ', nombre: 'Jersey Club Brand' },
+  { id: 'ACC1  ', nombre: 'Accesorios' }
 ];
 
 export default function AdminProductos() {
@@ -64,21 +66,39 @@ export default function AdminProductos() {
   // Estado para el menú de ajustes
   const [showSettingsMenu, setShowSettingsMenu] = useState(false);
 
-  // Cargar productos desde el backend (BD Prisma)
+  // Cargar productos usando estrategia de sincronización con la base de datos
+  // Cargar productos directamente y únicamente desde la base de datos (Sincronización Estricta)
   const fetchProducts = useCallback(async () => {
     setLoading(true);
     setError(null);
+
     try {
+      // 1. Obtener productos de la base de datos (Fuente de Verdad única)
       const result = await getProducts();
+
       if (result?.status === 'success' && Array.isArray(result.data)) {
-        setProducts(result.data);
+        const dbProducts = result.data.map(p => ({
+          ...p,
+          id: p.id,
+          nombre: p.nombre || p.title,
+          precio: parseFloat(p.precio) || 0,
+          stock: p.stock !== undefined ? p.stock : 0,
+          imagen: p.imagen || p.image || 'https://storage.googleapis.com/imagenesjerseyclub/default.webp',
+          categoria: p.categoria,
+          categoryId: p.categoryId,
+          descuento: parseFloat(String(p.descuento || p.discount || 0)) || 0,
+          discount: parseFloat(String(p.descuento || p.discount || 0)) || 0
+        }));
+
+
+        setProducts(dbProducts);
       } else {
-        console.error('La respuesta del backend no es válida:', result);
         setProducts([]);
       }
     } catch (err) {
-      setError('Error al cargar los productos. Por favor, intenta de nuevo.');
-      console.error('Error fetching products:', err);
+      console.error('Error al sincronizar con la base de datos:', err);
+      setError('No se pudo conectar con el servidor. Verifica que el backend esté corriendo.');
+      setProducts([]);
     } finally {
       setLoading(false);
     }
@@ -161,16 +181,23 @@ export default function AdminProductos() {
 
   // Abrir formulario para editar
   const handleEdit = (product) => {
+    // Limpiar el precio si viene como string "$60.00"
+    const rawPrice = product.precio || product.price || '';
+    const cleanPrice = typeof rawPrice === 'string'
+      ? rawPrice.replace('$', '').replace(',', '')
+      : rawPrice;
+
     setCurrentProduct({
       id: product.id,
-      nombre: product.nombre || product.name || '',
+      nombre: product.nombre || product.title || product.name || '',
       descripcion: product.descripcion || product.description || '',
-      precio: product.precio || product.price || '',
+      precio: cleanPrice,
       categoria: product.categoria || product.category || '',
       categoryId: product.categoryId || '',
       imagen: product.imagen || product.image || '',
-      stock: product.stock || '',
-      tallas: product.tallas?.join(',') || 'S,M,L,XL',
+      stock: (product.stock !== undefined && product.stock > 0) ? product.stock : 25,
+      descuento: product.descuento || product.discount || 0,
+      tallas: Array.isArray(product.tallas) ? product.tallas.join(',') : 'S,M,L,XL',
     });
     setIsEditing(true);
     setFormErrors({});
@@ -191,7 +218,8 @@ export default function AdminProductos() {
       stock: parseInt(currentProduct.stock, 10),
       categoryId: currentProduct.categoryId,
       categoria: CATEGORIAS.find(c => c.id === currentProduct.categoryId)?.nombre || 'Sin categoría',
-      imagen: currentProduct.imagen || '/assets/images/placeholder.webp',
+      imagen: currentProduct.imagen || 'https://storage.googleapis.com/imagenesjerseyclub/placeholder.webp',
+      descuento: parseFloat(currentProduct.descuento) || 0,
       tallas: currentProduct.tallas.split(',').map(t => t.trim()),
     };
 
@@ -250,7 +278,12 @@ export default function AdminProductos() {
         <div className="mb-8">
           <div className="sm:flex sm:items-center">
             <div className="sm:flex-auto">
-              <h1 className="text-2xl font-semibold text-gray-900">Administrar Productos</h1>
+              <div className="flex items-center space-x-3">
+                <h1 className="text-2xl font-semibold text-gray-900">Administrar Productos</h1>
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-800 border border-green-200 uppercase tracking-wide">
+                  {products.length} productos en base de datos
+                </span>
+              </div>
               <p className="mt-2 text-sm text-gray-700">
                 Gestiona el inventario de productos del Jersey Club EC.
               </p>
@@ -429,6 +462,9 @@ export default function AdminProductos() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Stock
                     </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Descuento
+                    </th>
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Acciones
                     </th>
@@ -462,11 +498,11 @@ export default function AdminProductos() {
                             <div className="flex-shrink-0 h-12 w-12">
                               <img
                                 className="h-12 w-12 rounded-lg object-cover"
-                                src={product.imagen || '/assets/images/placeholder.webp'}
+                                src={product.imagen || 'https://storage.googleapis.com/imagenesjerseyclub/placeholder.webp'}
                                 alt={product.nombre}
                                 onError={(e) => {
                                   e.target.onerror = null;
-                                  e.target.src = '/assets/images/placeholder.webp';
+                                  e.target.src = 'https://storage.googleapis.com/imagenesjerseyclub/placeholder.webp';
                                 }}
                               />
                             </div>
@@ -486,12 +522,19 @@ export default function AdminProductos() {
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                           ${parseFloat(product.precio).toFixed(2)}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`text-sm font-medium ${product.stock > 10 ? 'text-green-600' :
-                            product.stock > 0 ? 'text-yellow-600' : 'text-red-600'
-                            }`}>
-                            {product.stock} unidades
-                          </span>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {product.stock} unidades
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {product.descuento > 0 ? (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800 border border-red-200">
+                              -{product.descuento}%
+                            </span>
+                          ) : (
+                            <span className="text-gray-400">
+                              {product.descuento ? `Val: ${product.descuento}` : 'Sin desc.'}
+                            </span>
+                          )}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                           <button
@@ -524,6 +567,7 @@ export default function AdminProductos() {
                           </button>
                         </td>
                       </tr>
+
                     ))
                   )}
                 </tbody>
@@ -532,263 +576,287 @@ export default function AdminProductos() {
           </div>
         )}
 
+
         {/* Modal de formulario */}
-        {isFormOpen && (
-          <div className="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-            <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-              {/* Overlay */}
-              <div
-                className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
-                aria-hidden="true"
-                onClick={() => setIsFormOpen(false)}
-              ></div>
+        {
+          isFormOpen && (
+            <div className="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+              <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                {/* Overlay */}
+                <div
+                  className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+                  aria-hidden="true"
+                  onClick={() => setIsFormOpen(false)}
+                ></div>
 
-              <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+                <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
 
-              {/* Modal */}
-              <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-                <form onSubmit={handleSubmit}>
+                {/* Modal */}
+                <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                  <form onSubmit={handleSubmit}>
+                    <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                      <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4" id="modal-title">
+                        {isEditing ? 'Editar Producto' : 'Nuevo Producto'}
+                      </h3>
+
+                      <div className="space-y-4">
+                        {/* Nombre */}
+                        <div>
+                          <label htmlFor="nombre" className="block text-sm font-medium text-gray-700">
+                            Nombre <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            name="nombre"
+                            id="nombre"
+                            value={currentProduct.nombre}
+                            onChange={handleInputChange}
+                            className={`mt-1 block w-full rounded-md shadow-sm sm:text-sm ${formErrors.nombre
+                              ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
+                              : 'border-gray-300 focus:ring-indigo-500 focus:border-indigo-500'
+                              }`}
+                            placeholder="Ej: Camiseta Barcelona 2024"
+                          />
+                          {formErrors.nombre && (
+                            <p className="mt-1 text-sm text-red-600">{formErrors.nombre}</p>
+                          )}
+                        </div>
+
+                        {/* Descripción */}
+                        <div>
+                          <label htmlFor="descripcion" className="block text-sm font-medium text-gray-700">
+                            Descripción
+                          </label>
+                          <textarea
+                            name="descripcion"
+                            id="descripcion"
+                            rows={3}
+                            value={currentProduct.descripcion}
+                            onChange={handleInputChange}
+                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                            placeholder="Descripción del producto..."
+                          />
+                        </div>
+
+                        {/* Precio y Stock */}
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label htmlFor="precio" className="block text-sm font-medium text-gray-700">
+                              Precio ($) <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="number"
+                              name="precio"
+                              id="precio"
+                              step="0.01"
+                              min="0"
+                              value={currentProduct.precio}
+                              onChange={handleInputChange}
+                              className={`mt-1 block w-full rounded-md shadow-sm sm:text-sm ${formErrors.precio
+                                ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
+                                : 'border-gray-300 focus:ring-indigo-500 focus:border-indigo-500'
+                                }`}
+                              placeholder="0.00"
+                            />
+                            {formErrors.precio && (
+                              <p className="mt-1 text-sm text-red-600">{formErrors.precio}</p>
+                            )}
+                          </div>
+                          <div>
+                            <label htmlFor="stock" className="block text-sm font-medium text-gray-700">
+                              Stock <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="number"
+                              name="stock"
+                              id="stock"
+                              min="0"
+                              value={currentProduct.stock}
+                              onChange={handleInputChange}
+                              className={`mt-1 block w-full rounded-md shadow-sm sm:text-sm ${formErrors.stock
+                                ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
+                                : 'border-gray-300 focus:ring-indigo-500 focus:border-indigo-500'
+                                }`}
+                              placeholder="0"
+                            />
+                            {formErrors.stock && (
+                              <p className="mt-1 text-sm text-red-600">{formErrors.stock}</p>
+                            )}
+                          </div>
+                        </div>
+
+
+                        {/* Descuento y Categoría */}
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label htmlFor="descuento" className="block text-sm font-medium text-gray-700">
+                              Descuento (%) <span className="text-gray-400 text-xs">(Opcional)</span>
+                            </label>
+                            <input
+                              type="number"
+                              name="descuento"
+                              id="descuento"
+                              min="0"
+                              max="100"
+                              value={currentProduct.descuento}
+                              onChange={handleInputChange}
+                              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                              placeholder="0"
+                            />
+                          </div>
+
+                          <div>
+                            <label htmlFor="categoryId" className="block text-sm font-medium text-gray-700">
+                              Categoría <span className="text-red-500">*</span>
+                            </label>
+                            <select
+                              name="categoryId"
+                              id="categoryId"
+                              value={currentProduct.categoryId}
+                              onChange={handleInputChange}
+                              className={`mt-1 block w-full rounded-md shadow-sm sm:text-sm ${formErrors.categoria
+                                ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
+                                : 'border-gray-300 focus:ring-indigo-500 focus:border-indigo-500'
+                                }`}
+                            >
+                              <option value="">Selecciona una categoría</option>
+                              {CATEGORIAS.map(cat => (
+                                <option key={cat.id} value={cat.id}>{cat.nombre}</option>
+                              ))}
+                            </select>
+                            {formErrors.categoria && (
+                              <p className="mt-1 text-sm text-red-600">{formErrors.categoria}</p>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Imagen URL */}
+                        <div>
+                          <label htmlFor="imagen" className="block text-sm font-medium text-gray-700">
+                            URL de imagen
+                          </label>
+                          <input
+                            type="text"
+                            name="imagen"
+                            id="imagen"
+                            value={currentProduct.imagen}
+                            onChange={handleInputChange}
+                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                            placeholder="/assets/images/producto.webp"
+                          />
+                        </div>
+
+                        {/* Tallas */}
+                        <div>
+                          <label htmlFor="tallas" className="block text-sm font-medium text-gray-700">
+                            Tallas (separadas por coma)
+                          </label>
+                          <input
+                            type="text"
+                            name="tallas"
+                            id="tallas"
+                            value={currentProduct.tallas}
+                            onChange={handleInputChange}
+                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                            placeholder="S,M,L,XL"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                      <button
+                        type="submit"
+                        disabled={submitting}
+                        className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      >
+                        {submitting ? (
+                          <>
+                            <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Guardando...
+                          </>
+                        ) : (
+                          isEditing ? 'Actualizar' : 'Crear'
+                        )}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setIsFormOpen(false)}
+                        disabled={submitting}
+                        className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 transition-colors"
+                      >
+                        Cancelar
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+          )
+        }
+
+        {/* Modal de confirmación de eliminación */}
+        {
+          deleteConfirm.open && (
+            <div className="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+              <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                <div
+                  className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+                  aria-hidden="true"
+                  onClick={handleDeleteCancel}
+                ></div>
+
+                <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+                {/* Modal contenedor */}
+                <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
                   <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                    <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4" id="modal-title">
-                      {isEditing ? 'Editar Producto' : 'Nuevo Producto'}
-                    </h3>
-
-                    <div className="space-y-4">
-                      {/* Nombre */}
-                      <div>
-                        <label htmlFor="nombre" className="block text-sm font-medium text-gray-700">
-                          Nombre <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          name="nombre"
-                          id="nombre"
-                          value={currentProduct.nombre}
-                          onChange={handleInputChange}
-                          className={`mt-1 block w-full rounded-md shadow-sm sm:text-sm ${formErrors.nombre
-                            ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
-                            : 'border-gray-300 focus:ring-indigo-500 focus:border-indigo-500'
-                            }`}
-                          placeholder="Ej: Camiseta Barcelona 2024"
-                        />
-                        {formErrors.nombre && (
-                          <p className="mt-1 text-sm text-red-600">{formErrors.nombre}</p>
-                        )}
+                    <div className="sm:flex sm:items-start">
+                      <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
+                        <svg className="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
                       </div>
-
-                      {/* Descripción */}
-                      <div>
-                        <label htmlFor="descripcion" className="block text-sm font-medium text-gray-700">
-                          Descripción
-                        </label>
-                        <textarea
-                          name="descripcion"
-                          id="descripcion"
-                          rows={3}
-                          value={currentProduct.descripcion}
-                          onChange={handleInputChange}
-                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                          placeholder="Descripción del producto..."
-                        />
-                      </div>
-
-                      {/* Precio y Stock */}
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label htmlFor="precio" className="block text-sm font-medium text-gray-700">
-                            Precio ($) <span className="text-red-500">*</span>
-                          </label>
-                          <input
-                            type="number"
-                            name="precio"
-                            id="precio"
-                            step="0.01"
-                            min="0"
-                            value={currentProduct.precio}
-                            onChange={handleInputChange}
-                            className={`mt-1 block w-full rounded-md shadow-sm sm:text-sm ${formErrors.precio
-                              ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
-                              : 'border-gray-300 focus:ring-indigo-500 focus:border-indigo-500'
-                              }`}
-                            placeholder="0.00"
-                          />
-                          {formErrors.precio && (
-                            <p className="mt-1 text-sm text-red-600">{formErrors.precio}</p>
-                          )}
+                      <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                        <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-title">
+                          Eliminar producto
+                        </h3>
+                        <div className="mt-2">
+                          <p className="text-sm text-gray-500">
+                            ¿Estás seguro de que deseas eliminar <strong>{deleteConfirm.product?.nombre}</strong>?
+                            Esta acción no se puede deshacer.
+                          </p>
                         </div>
-
-                        <div>
-                          <label htmlFor="stock" className="block text-sm font-medium text-gray-700">
-                            Stock <span className="text-red-500">*</span>
-                          </label>
-                          <input
-                            type="number"
-                            name="stock"
-                            id="stock"
-                            min="0"
-                            value={currentProduct.stock}
-                            onChange={handleInputChange}
-                            className={`mt-1 block w-full rounded-md shadow-sm sm:text-sm ${formErrors.stock
-                              ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
-                              : 'border-gray-300 focus:ring-indigo-500 focus:border-indigo-500'
-                              }`}
-                            placeholder="0"
-                          />
-                          {formErrors.stock && (
-                            <p className="mt-1 text-sm text-red-600">{formErrors.stock}</p>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Categoría */}
-                      <div>
-                        <label htmlFor="categoryId" className="block text-sm font-medium text-gray-700">
-                          Categoría <span className="text-red-500">*</span>
-                        </label>
-                        <select
-                          name="categoryId"
-                          id="categoryId"
-                          value={currentProduct.categoryId}
-                          onChange={handleInputChange}
-                          className={`mt-1 block w-full rounded-md shadow-sm sm:text-sm ${formErrors.categoria
-                            ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
-                            : 'border-gray-300 focus:ring-indigo-500 focus:border-indigo-500'
-                            }`}
-                        >
-                          <option value="">Selecciona una categoría</option>
-                          {CATEGORIAS.map(cat => (
-                            <option key={cat.id} value={cat.id}>{cat.nombre}</option>
-                          ))}
-                        </select>
-                        {formErrors.categoria && (
-                          <p className="mt-1 text-sm text-red-600">{formErrors.categoria}</p>
-                        )}
-                      </div>
-
-                      {/* Imagen URL */}
-                      <div>
-                        <label htmlFor="imagen" className="block text-sm font-medium text-gray-700">
-                          URL de imagen
-                        </label>
-                        <input
-                          type="text"
-                          name="imagen"
-                          id="imagen"
-                          value={currentProduct.imagen}
-                          onChange={handleInputChange}
-                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                          placeholder="/assets/images/producto.webp"
-                        />
-                      </div>
-
-                      {/* Tallas */}
-                      <div>
-                        <label htmlFor="tallas" className="block text-sm font-medium text-gray-700">
-                          Tallas (separadas por coma)
-                        </label>
-                        <input
-                          type="text"
-                          name="tallas"
-                          id="tallas"
-                          value={currentProduct.tallas}
-                          onChange={handleInputChange}
-                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                          placeholder="S,M,L,XL"
-                        />
                       </div>
                     </div>
                   </div>
-
                   <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
                     <button
-                      type="submit"
+                      type="button"
+                      onClick={handleDeleteConfirm}
                       disabled={submitting}
-                      className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 transition-colors"
                     >
-                      {submitting ? (
-                        <>
-                          <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                          </svg>
-                          Guardando...
-                        </>
-                      ) : (
-                        isEditing ? 'Actualizar' : 'Crear'
-                      )}
+                      {submitting ? 'Eliminando...' : 'Eliminar'}
                     </button>
                     <button
                       type="button"
-                      onClick={() => setIsFormOpen(false)}
+                      onClick={handleDeleteCancel}
                       disabled={submitting}
                       className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 transition-colors"
                     >
                       Cancelar
                     </button>
                   </div>
-                </form>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Modal de confirmación de eliminación */}
-        {deleteConfirm.open && (
-          <div className="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-            <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-              <div
-                className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
-                aria-hidden="true"
-                onClick={handleDeleteCancel}
-              ></div>
-
-              <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-
-              {/* Modal contenedor */}
-              <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-                <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                  <div className="sm:flex sm:items-start">
-                    <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
-                      <svg className="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                      </svg>
-                    </div>
-                    <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                      <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-title">
-                        Eliminar producto
-                      </h3>
-                      <div className="mt-2">
-                        <p className="text-sm text-gray-500">
-                          ¿Estás seguro de que deseas eliminar <strong>{deleteConfirm.product?.nombre}</strong>?
-                          Esta acción no se puede deshacer.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                  <button
-                    type="button"
-                    onClick={handleDeleteConfirm}
-                    disabled={submitting}
-                    className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 transition-colors"
-                  >
-                    {submitting ? 'Eliminando...' : 'Eliminar'}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleDeleteCancel}
-                    disabled={submitting}
-                    className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 transition-colors"
-                  >
-                    Cancelar
-                  </button>
                 </div>
               </div>
             </div>
-          </div>
-        )}
-      </div>
-    </div>
+          )
+        }
+      </div >
+    </div >
   );
 }
