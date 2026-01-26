@@ -365,7 +365,7 @@ app.get('/api/ordenes', requireAuth, async (req, res) => {
 // INICIAR SERVIDOR
 const PORT = process.env.PORT || 5002;
 
-if (process.env.NODE_ENV !== 'production') {
+if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
   app.listen(PORT, () => {
     console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
     console.log('✅ Integrado con PostgreSQL mediante Prisma');
