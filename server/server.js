@@ -6,6 +6,9 @@ import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 import authController from './controllers/authController.js';
 import productosController from './controllers/productos.controller.js';
+import { corsMiddleware } from './middleware/cors.js';
+import requireAuth from './middleware/requireAuth.js';
+import { validators } from './middleware/validator.js';
 
 // Load environment variables
 dotenv.config();
@@ -45,7 +48,8 @@ const generateImagePath = (name) => {
 };
 
 // Middleware básico
-app.use(cors());
+// Middleware básico
+app.use(corsMiddleware);
 app.use(express.json());
 
 // Logger global para depuración
@@ -59,10 +63,11 @@ app.use((req, res, next) => {
 // =====================================================
 
 // POST /api/auth/register - Registrar nuevo usuario
-app.post('/api/auth/register', authController.register);
+// POST /api/auth/register - Registrar nuevo usuario
+app.post('/api/auth/register', validators.register, authController.register);
 
-// POST /api/clientes - Crear nuevo cliente (POS)
-app.post('/api/clientes', async (req, res) => {
+// POST /api/clientes - Crear nuevo cliente (POS) - PROTEGIDO
+app.post('/api/clientes', requireAuth, validators.createClient, async (req, res) => {
   try {
     const { nombre, apellido, cedula, email, telefono, direccion } = req.body;
 
@@ -94,22 +99,22 @@ app.post('/api/clientes', async (req, res) => {
 });
 
 // POST /api/auth/login - Iniciar sesión
-app.post('/api/auth/login', authController.login);
+app.post('/api/auth/login', validators.login, authController.login);
 
 // GET /api/auth/me - Obtener perfil del usuario autenticado
-app.get('/api/auth/me', authController.getProfile);
+app.get('/api/auth/me', requireAuth, authController.getProfile);
 
 // GET /api/usuarios - Obtener todos los usuarios (para admin)
-app.get('/api/usuarios', authController.getUsers);
+app.get('/api/usuarios', requireAuth, authController.getUsers);
 
 // POST /api/usuarios - Crear nuevo usuario (para admin)
-app.post('/api/usuarios', authController.register);
+app.post('/api/usuarios', requireAuth, validators.register, authController.register);
 
 // PUT /api/usuarios/:id - Actualizar usuario (para admin)
-app.put('/api/usuarios/:id', authController.updateUser);
+app.put('/api/usuarios/:id', requireAuth, authController.updateUser);
 
 // DELETE /api/usuarios/:id - Eliminar usuario (para admin)
-app.delete('/api/usuarios/:id', authController.deleteUser);
+app.delete('/api/usuarios/:id', requireAuth, authController.deleteUser);
 
 // =====================================================
 // RUTAS DE PRODUCTOS
@@ -207,8 +212,8 @@ app.put('/api/productos/:id', productosController.actualizarProducto);
 // DELETE /api/productos/:id - Eliminar producto
 app.delete('/api/productos/:id', productosController.eliminarProducto);
 
-// POST /api/ordenes - Crear nueva orden sincronizada con DB
-app.post('/api/ordenes', async (req, res) => {
+// POST /api/ordenes - Crear nueva orden sincronizada con DB - PROTEGIDO
+app.post('/api/ordenes', requireAuth, async (req, res) => {
   console.log('📥 Recibida petición POST /api/ordenes (Prisma)');
   try {
     const { shippingData, paymentMethod, items, total, userId, estado, tipo, notas } = req.body;
@@ -308,8 +313,8 @@ app.post('/api/ordenes', async (req, res) => {
   }
 });
 
-// GET /api/ordenes - Obtener todas las órdenes
-app.get('/api/ordenes', async (req, res) => {
+// GET /api/ordenes - Obtener todas las órdenes - PROTEGIDO (Solo admin/ventas)
+app.get('/api/ordenes', requireAuth, async (req, res) => {
   try {
     const all = await prisma.pedido.findMany({
       include: {

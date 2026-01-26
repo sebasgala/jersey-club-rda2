@@ -127,11 +127,11 @@ const login = async (req, res) => {
 
     // Comparar password (bcrypt)
     const isMatch = await bcrypt.compare(password, user.usu_passwordhash);
-    if (!isMatch && password !== 'Admin123!') { // Mantener bypass temporal para pruebas si es necesario
-      if (password !== user.usu_passwordhash) { // Fallback a texto plano si el hash falla (solo para datos actuales)
-        return res.status(401).json({ success: false, message: 'Credenciales inválidas' });
-      }
+
+    if (!isMatch) {
+      return res.status(401).json({ success: false, message: 'Credenciales inválidas' });
     }
+
 
     const token = generateToken(user);
 

@@ -59,4 +59,32 @@ Para propósitos de previsualización, el proyecto se puede subir a **Render**.
 > Ten en cuenta que en el plan gratuito de Render, los datos de pedidos y nuevos usuarios se reinician periódicamente debido al sistema de archivos efímero.
 
 ---
+
+##  Seguridad y OWASP
+
+Esta aplicación implementa medidas de seguridad robustas siguiendo las mejores prácticas y mitigando riesgos del Top 10 de OWASP.
+
+### Riesgos Identificados y Mitigados
+
+#### 1. Inyección (A03:2021-Injection)
+*   **Riesgo**: Atacantes podrían enviar comandos SQL maliciosos a través de campos de entrada.
+*   **Mitigación**: Uso de **Prisma ORM** que utiliza consultas parametrizadas por defecto, evitando inyección SQL directa. Además, se sanitizan todas las entradas críticas con `express-validator` y `escape()`.
+
+#### 2. Pérdida de Autenticación (A07:2021-Identification and Authentication Failures)
+*   **Riesgo**: Contraseñas débiles o manejo incorrecto de sesiones.
+*   **Mitigación**: 
+    *   Uso de **Bcrypt** para hashear contraseñas (nunca se guardan en texto plano).
+    *   Implementación de **JWT (JSON Web Tokens)** con firma segura y expiración para manejo de sesiones stateless.
+    *   Middleware `requireAuth` para proteger rutas sensibles.
+
+#### 3. Fallos de Integridad de Datos y Software (A08:2021-Software and Data Integrity Failures)
+*   **Riesgo**: Deserialización insegura o falta de validación de tipos.
+*   **Mitigación**: Implementación de **validación estricta de esquemas** en el backend para todos los endpoints POST/PUT usando `express-validator`. Se verifican tipos de datos, longitudes y formatos (email) antes de procesar cualquier lógica de negocio.
+
+### Medidas Adicionales
+*   **CORS Seguro**: Configurado para permitir peticiones únicamente desde el frontend autorizado, bloqueando orígenes desconocidos.
+*   **Manejo de Errores Seguro**: Los errores de producción no exponen el stacktrace del servidor al cliente.
+
+---
+
 **Desarrollado con  por el equipo de Jersey Club EC.**

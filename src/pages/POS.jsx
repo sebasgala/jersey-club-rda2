@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import '../styles/main.css';
 import '../styles/POS.css'; // New styles specifically for POS
 import { useAuth } from '../context/AuthContext';
