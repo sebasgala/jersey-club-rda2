@@ -12,6 +12,12 @@ import { validators } from './middleware/validator.js';
 import prisma from './lib/prisma.js';
 import { logAudit, generateNextId, handlePrismaError } from './lib/dbHelpers.js';
 
+console.log('🌐 [DIAGNOSTIC] DATABASE_URL presence:', process.env.DATABASE_URL ? 'YES (Length: ' + process.env.DATABASE_URL.length + ')' : 'NO');
+if (process.env.DATABASE_URL) {
+  const masked = process.env.DATABASE_URL.replace(/:([^:@]+)@/, ':****@');
+  console.log('🌐 [DIAGNOSTIC] Masked URL:', masked);
+}
+
 // Load environment variables
 dotenv.config();
 
