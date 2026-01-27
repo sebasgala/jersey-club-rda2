@@ -188,16 +188,22 @@ const categoryStructure = {
       }
     ]
   },
-  ropa: {
-    name: "Ropa de Marca",
+  jerseyclub: {
+    name: "Jersey Club Brand",
     sections: [
       {
-        title: "Jersey Club Brand",
+        title: "Toda la Colección",
         link: "/jersey-club-brand",
         items: [
-          { name: "Ver toda la colección", filter: null, link: "/jersey-club-brand", alwaysShow: true },
+          { name: "Ver todos los productos", filter: null, link: "/jersey-club-brand", alwaysShow: true }
+        ]
+      },
+      {
+        title: "Ropa Deportiva",
+        link: null,
+        items: [
           { name: "Camisetas", filter: "camiseta", link: "/jersey-club-brand?tipo=camisetas", alwaysShow: true },
-          { name: "Buzos", filter: "buzo", link: "/jersey-club-brand?tipo=buzos", alwaysShow: true },
+          { name: "Buzos de Compresión", filter: "buzo", link: "/jersey-club-brand?tipo=buzos", alwaysShow: true },
           { name: "Pantalonetas", filter: "pantaloneta", link: "/jersey-club-brand?tipo=pantalonetas", alwaysShow: true }
         ]
       },
@@ -210,20 +216,21 @@ const categoryStructure = {
         ]
       },
       {
-        title: "Por Género",
-        link: null,
+        title: "Para Él",
+        link: "/jersey-club-brand?categoria=hombre",
         items: [
-          { name: "Hombre", filter: "hombre", link: "/jersey-club-brand?categoria=hombre", alwaysShow: true },
-          { name: "Mujer", filter: "mujer", link: "/jersey-club-brand?categoria=mujer", alwaysShow: true }
+          { name: "Camiseta Deportiva Hombre", filter: "camiseta deportiva hombre", link: "/jersey-club-brand?buscar=camiseta+deportiva+hombre", alwaysShow: true },
+          { name: "Buzo Compresión Hombre", filter: "buzo compresion hombre", link: "/jersey-club-brand?buscar=buzo+compresion+hombre", alwaysShow: true },
+          { name: "Pantaloneta Deportiva Hombre", filter: "pantaloneta hombre", link: "/jersey-club-brand?buscar=pantaloneta+hombre", alwaysShow: true }
         ]
       },
       {
-        title: "Destacados",
-        link: null,
+        title: "Para Ella",
+        link: "/jersey-club-brand?categoria=mujer",
         items: [
-          { name: "Camiseta Deportiva Hombre", filter: "camiseta deportiva hombre", link: "/jersey-club-brand?buscar=camiseta+deportiva+hombre", alwaysShow: true },
           { name: "Camiseta Deportiva Mujer", filter: "camiseta deportiva mujer", link: "/jersey-club-brand?buscar=camiseta+deportiva+mujer", alwaysShow: true },
-          { name: "Buzo Compresión", filter: "buzo compresion", link: "/jersey-club-brand?buscar=buzo+compresion", alwaysShow: true }
+          { name: "Buzo Compresión Mujer", filter: "buzo compresion mujer", link: "/jersey-club-brand?buscar=buzo+compresion+mujer", alwaysShow: true },
+          { name: "Pantaloneta Running Mujer", filter: "pantaloneta mujer", link: "/jersey-club-brand?buscar=pantaloneta+mujer", alwaysShow: true }
         ]
       }
     ]
@@ -349,14 +356,14 @@ function CategoriesMenu({ isOpen, onClose }) {
               </button>
             </div>
 
-            {/* Ropa de Marca */}
+            {/* Jersey Club Brand */}
             <div className="menu-category">
               <button
-                className={`menu-category-title ${activeCategory === 'ropa' ? 'active' : ''}`}
-                onClick={() => toggleCategory('ropa')}
+                className={`menu-category-title ${activeCategory === 'jerseyclub' ? 'active' : ''}`}
+                onClick={() => toggleCategory('jerseyclub')}
                 type="button"
               >
-                <span>Ropa de Marca</span>
+                <span>Jersey Club Brand</span>
                 <span className="menu-arrow">›</span>
               </button>
             </div>
