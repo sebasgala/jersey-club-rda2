@@ -1,17 +1,14 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { getProductsByCategory } from '../models/httpClient';
-// Importar productos y función toSlug desde fuente centralizada - Removido por sincronización estricta
-// import { jerseyClubGeneratedProducts } from "../data/jerseyClubGeneratedProducts";
+// Importar productos locales como fallback
+import { jerseyClubGeneratedProducts } from "../data/jerseyClubGeneratedProducts";
 
 const PAGE_SIZE = 12;
 
 // ========================================
 // LÓGICA DE PRODUCTOS JERSEY CLUB BRAND
 // ========================================
-
-// Usar productos generados desde la fuente centralizada - Removido por sincronización estricta
-// const jerseyClubBaseProducts = jerseyClubGeneratedProducts;
 
 const CATEGORY_ID = 'JCB1  '; // Jersey Club Brand
 
@@ -337,28 +334,50 @@ const JerseyClubBrand = () => {
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // Carga Estricta: Únicamente API (Base de Datos)
+  // Cargar productos: Combinar productos locales con backend (si existen)
   useEffect(() => {
     const fetchProducts = async () => {
       setLoading(true);
       try {
-        let apiProducts = [];
-        const response = await getProductsByCategory(CATEGORY_ID);
+        let allProducts = [];
 
-        if (response.status === 'success' && Array.isArray(response.data)) {
-          apiProducts = response.data.map(p => ({
-            ...p,
-            source: 'api'
-          }));
+        // Primero usar productos locales (siempre disponibles)
+        const localProducts = jerseyClubGeneratedProducts.map(p => ({
+          ...p,
+          source: 'local'
+        }));
+
+        // Intentar cargar productos del backend
+        try {
+          const response = await getProductsByCategory(CATEGORY_ID);
+          if (response.status === 'success' && Array.isArray(response.data) && response.data.length > 0) {
+            const apiProducts = response.data.map(p => ({
+              ...p,
+              source: 'api'
+            }));
+            // Combinar: backend primero, luego locales (evitando duplicados por ID)
+            const apiIds = new Set(apiProducts.map(p => p.id));
+            const uniqueLocal = localProducts.filter(p => !apiIds.has(p.id));
+            allProducts = [...apiProducts, ...uniqueLocal];
+          } else {
+            // Si no hay productos en backend, usar solo locales
+            allProducts = localProducts;
+          }
+        } catch (apiError) {
+          console.warn('Backend no disponible, usando productos locales:', apiError);
+          allProducts = localProducts;
         }
 
-        // Enriquecer datos
-        const enriched = apiProducts.map((p, i) => generateProductData(p, i));
+        // Enriquecer datos con género, categoría, etc.
+        const enriched = allProducts.map((p, i) => generateProductData(p, i));
         setProducts(enriched);
         setFilteredProducts(enriched);
       } catch (err) {
-        console.error('Error al procesar productos de Jersey Club desde la DB:', err);
-        setProducts([]);
+        console.error('Error al cargar productos de Jersey Club:', err);
+        // Fallback final: usar productos locales sin enriquecer
+        const fallback = jerseyClubGeneratedProducts.map((p, i) => generateProductData(p, i));
+        setProducts(fallback);
+        setFilteredProducts(fallback);
       } finally {
         setLoading(false);
       }
