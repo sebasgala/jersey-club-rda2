@@ -7,6 +7,115 @@ import PromoSection from "../components/PromoSection";
 const PAGE_SIZE = 12;
 const CATEGORY_ID = 'FUT1  '; // Fútbol
 
+/**
+ * Normaliza texto quitando acentos y convirtiendo a minúsculas
+ */
+const normalizeText = (text) => {
+  if (!text) return '';
+  return text
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim();
+};
+
+/**
+ * Mapeo de equipos con todos sus posibles alias/nombres en los productos
+ * Clave: nombre usado en el filtro (URL), Valor: array de términos a buscar en el nombre del producto
+ */
+const equipoAliasMap = {
+  // Bundesliga
+  'bayern munich': ['bayern', 'munich'],
+  'borussia dortmund': ['borussia', 'dortmund'],
+  'bayer leverkusen': ['leverkusen', 'bayer'],
+  // La Liga
+  'real madrid': ['real madrid', 'real-madrid'],
+  'barcelona': ['barcelona', 'barca'],
+  'atletico madrid': ['atletico madrid', 'atletico', 'atlético'],
+  'real betis': ['betis', 'real betis'],
+  // Premier League
+  'manchester united': ['manchester united', 'man utd', 'man united'],
+  'manchester city': ['manchester city', 'man city'],
+  'chelsea': ['chelsea'],
+  'liverpool': ['liverpool'],
+  'arsenal': ['arsenal'],
+  // Serie A
+  'ac milan': ['ac milan', 'milan'],
+  'inter milan': ['inter milan', 'inter'],
+  'juventus': ['juventus', 'juve'],
+  'roma': ['roma', 'as roma'],
+  'napoli': ['napoli'],
+  // Ligue 1
+  'psg': ['psg', 'paris'],
+  'monaco': ['monaco'],
+  'marseille': ['marseille'],
+  'lyon': ['lyon', 'liyon'],
+  // Liga Pro Ecuador
+  'independiente del valle': ['idv', 'independiente'],
+  'liga de quito': ['liga de quito', 'ldu'],
+  'barcelona sc': ['barcelona ecuador', 'barcelona sc'],
+  'emelec': ['emelec'],
+  'aucas': ['aucas'],
+  'deportivo quito': ['deportivo quito', 'deportivo quiro'],
+  // Selecciones
+  'ecuador': ['ecuador'],
+  'brasil': ['brasil', 'brazil'],
+  'colombia': ['colombia'],
+  'españa': ['espana', 'españa'],
+  'alemania': ['alemania', 'germany'],
+  'argentina': ['argentina'],
+  'portugal': ['portugal'],
+  'inglaterra': ['inglaterra', 'england'],
+  'francia': ['francia', 'france'],
+  'japon': ['japon', 'japan'],
+  'italia': ['italia', 'italy'],
+  'mexico': ['mexico', 'america'],
+  'holanda': ['holanda'],
+  'croacia': ['croacia'],
+  'belgica': ['belgica'],
+  'uruguay': ['uruguay'],
+  'peru': ['peru'],
+  'chile': ['chile'],
+};
+
+/**
+ * Mapeo de ligas con los equipos/términos que las identifican
+ */
+const ligaAliasMap = {
+  'Bundesliga': ['bayern', 'borussia', 'dortmund', 'leverkusen'],
+  'La Liga': ['real madrid', 'barcelona', 'atletico', 'betis'],
+  'Premier League': ['manchester', 'city', 'arsenal', 'liverpool', 'chelsea', 'united', 'villa', 'everton', 'newcastle', 'tottenham'],
+  'Serie A': ['milan', 'inter', 'juventus', 'roma', 'napoli', 'ac milan'],
+  'Ligue 1': ['psg', 'paris', 'monaco', 'marseille', 'lyon', 'liyon'],
+  'Liga Pro': ['idv', 'independiente', 'emelec', 'aucas', 'deportivo quiro', 'barcelona ecuador', 'liga de quito'],
+  'Selecciones': ['argentina', 'alemania', 'portugal', 'francia', 'brasil', 'ecuador', 'espana', 'españa', 'italia', 'japon', 'colombia', 'uruguay', 'mexico', 'america', 'inglaterra', 'holanda', 'croacia', 'belgica', 'chile', 'peru', 'paraguay', 'venezuela', 'bolivia', 'corea', 'estados unidos']
+};
+
+/**
+ * Verifica si un producto pertenece a un equipo específico
+ */
+const productMatchesTeam = (productName, teamFilter) => {
+  const normalizedProduct = normalizeText(productName);
+  const normalizedFilter = normalizeText(teamFilter);
+
+  // Buscar en el mapa de alias
+  const aliases = equipoAliasMap[normalizedFilter] || [normalizedFilter];
+
+  return aliases.some(alias => normalizedProduct.includes(normalizeText(alias)));
+};
+
+/**
+ * Verifica si un producto pertenece a una liga específica
+ */
+const productMatchesLiga = (productName, liga) => {
+  const normalizedProduct = normalizeText(productName);
+  const ligaTerms = ligaAliasMap[liga];
+
+  if (!ligaTerms) return false;
+
+  return ligaTerms.some(term => normalizedProduct.includes(normalizeText(term)));
+};
+
 // Generar datos adicionales
 const generateProductData = (product, index) => {
   const rating = (3.5 + Math.random() * 1.5).toFixed(1);
@@ -267,6 +376,8 @@ const Futbol = () => {
   // Leer query params
   useEffect(() => {
     const equipo = searchParams.get('equipo');
+    const seleccion = searchParams.get('seleccion'); // Para selecciones nacionales
+    const categoria = searchParams.get('categoria'); // Para categoría como "Selecciones"
     const onSale = searchParams.get('onSale');
     const coleccion = searchParams.get('coleccion');
     const tipo = searchParams.get('tipo');
@@ -277,10 +388,24 @@ const Futbol = () => {
       const newFilters = { ...prev };
       let hasChanges = false;
 
+      // Filtro por equipo
       if (equipo && !prev.teams.includes(equipo)) {
         newFilters.teams = [equipo];
         hasChanges = true;
       }
+
+      // Filtro por selección nacional (trata selección como un equipo)
+      if (seleccion && !prev.teams.includes(seleccion)) {
+        newFilters.teams = [seleccion];
+        hasChanges = true;
+      }
+
+      // Filtro por categoría (ej: Selecciones)
+      if (categoria === 'Selecciones' && prev.liga !== 'Selecciones') {
+        newFilters.liga = 'Selecciones';
+        hasChanges = true;
+      }
+
       if (onSale === 'true' && !prev.onlyOffers) {
         newFilters.onlyOffers = true;
         hasChanges = true;
@@ -310,9 +435,10 @@ const Futbol = () => {
   useEffect(() => {
     let result = [...products];
 
+    // Filtro por equipo usando la función de matching con alias
     if (filters.teams.length > 0) {
       result = result.filter(p =>
-        filters.teams.some(team => (p.nombre || p.title).toLowerCase().includes(team.toLowerCase()))
+        filters.teams.some(team => productMatchesTeam(p.nombre || p.title, team))
       );
     }
 
@@ -322,7 +448,7 @@ const Futbol = () => {
 
     if (filters.coleccion) {
       result = result.filter(p =>
-        (p.nombre || p.title).toLowerCase().includes(filters.coleccion.toLowerCase())
+        normalizeText(p.nombre || p.title).includes(normalizeText(filters.coleccion))
       );
     }
 
@@ -334,23 +460,9 @@ const Futbol = () => {
       });
     }
 
+    // Filtro por liga usando la función de matching con alias
     if (filters.liga) {
-      if (filters.liga === 'Premier League') {
-        const premierTeams = ['City', 'Arsenal', 'Liverpool', 'Chelsea', 'United', 'Tottenham', 'Villa', 'Everton', 'Newcastle'];
-        result = result.filter(p =>
-          premierTeams.some(team => (p.nombre || p.title).toLowerCase().includes(team.toLowerCase()))
-        );
-      } else if (filters.liga === 'Selecciones') {
-        const nationalTeams = [
-          'Argentina', 'Alemania', 'Portugal', 'Francia', 'Brasil', 'Ecuador',
-          'España', 'Italia', 'Japon', 'Colombia', 'Uruguay', 'Mexico',
-          'Inglaterra', 'Holanda', 'Croacia', 'Belgica', 'Chile', 'Peru',
-          'Paraguay', 'Venezuela', 'Bolivia', 'Corea', 'Estados Unidos'
-        ];
-        result = result.filter(p =>
-          nationalTeams.some(team => (p.nombre || p.title).toLowerCase().includes(team.toLowerCase()))
-        );
-      }
+      result = result.filter(p => productMatchesLiga(p.nombre || p.title, filters.liga));
     }
 
     if (filters.temporada) {

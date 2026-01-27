@@ -7,6 +7,48 @@ const PAGE_SIZE = 12;
 const EAGER_COUNT = 4;
 const CATEGORY_ID = 'F1-1  '; // Fórmula 1
 
+/**
+ * Normaliza texto quitando acentos y convirtiendo a minúsculas
+ */
+const normalizeText = (text) => {
+  if (!text) return '';
+  return text
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim();
+};
+
+/**
+ * Mapeo de equipos F1 con todos sus posibles alias/nombres en los productos
+ */
+const equipoF1AliasMap = {
+  'mclaren': ['mclaren', 'mclared', 'norris'],
+  'mercedes': ['mercedes', 'amg', 'petronas'],
+  'red bull racing': ['red bull', 'redbull', 'verstappen'],
+  'red bull': ['red bull', 'redbull', 'verstappen'],
+  'ferrari': ['ferrari', 'leclerc', 'hamilton ferrari'],
+  'williams': ['williams'],
+  'aston martin': ['aston martin', 'aston', 'alonso'],
+  'alpine': ['alpine', 'gasly'],
+  'haas': ['haas', 'magnussen'],
+  'rb': ['rb f1', 'visa cash app', 'rb ', 'tsunoda'],
+  'sauber': ['sauber', 'bottas']
+};
+
+/**
+ * Verifica si un producto pertenece a un equipo F1 específico
+ */
+const productMatchesTeamF1 = (productName, teamFilter) => {
+  const normalizedProduct = normalizeText(productName);
+  const normalizedFilter = normalizeText(teamFilter);
+
+  // Buscar en el mapa de alias
+  const aliases = equipoF1AliasMap[normalizedFilter] || [normalizedFilter];
+
+  return aliases.some(alias => normalizedProduct.includes(normalizeText(alias)));
+};
+
 // Generar datos adicionales para estilo Amazon
 const generateProductData = (product, index) => {
   const rating = (3.5 + Math.random() * 1.5).toFixed(1);
@@ -291,16 +333,15 @@ const Formula1 = () => {
   }, [searchParams]);
 
 
+
   // Aplicar filtros
   useEffect(() => {
     let result = [...products];
 
+    // Filtro por equipo usando la función de matching con alias
     if (filters.teams.length > 0) {
       result = result.filter(p =>
-        filters.teams.some(team =>
-          (p.nombre || p.title || "").toLowerCase().includes(team.toLowerCase()) ||
-          (p.team || p.escuderia || "").toLowerCase().includes(team.toLowerCase())
-        )
+        filters.teams.some(team => productMatchesTeamF1(p.nombre || p.title || "", team))
       );
     }
 
@@ -309,10 +350,10 @@ const Formula1 = () => {
     }
 
     if (filters.piloto) {
-      const searchPiloto = filters.piloto.toLowerCase();
+      const searchPiloto = normalizeText(filters.piloto);
       result = result.filter(p =>
-        (p.nombre || p.title || "").toLowerCase().includes(searchPiloto) ||
-        (p.driver || p.piloto || "").toLowerCase().includes(searchPiloto)
+        normalizeText(p.nombre || p.title || "").includes(searchPiloto) ||
+        normalizeText(p.driver || p.piloto || "").includes(searchPiloto)
       );
     }
 
