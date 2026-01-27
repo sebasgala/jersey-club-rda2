@@ -15,6 +15,41 @@ const PAGE_SIZE = 12;
 
 const CATEGORY_ID = 'JCB1  '; // Jersey Club Brand
 
+/**
+ * Normaliza texto para comparación (quita acentos y convierte a minúsculas)
+ */
+const normalizeText = (text) => {
+  if (!text) return '';
+  return text
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim();
+};
+
+/**
+ * Detecta el género del producto basándose en su nombre
+ */
+const detectGender = (productName) => {
+  const normalized = normalizeText(productName);
+  if (normalized.includes('hombre')) return 'Hombre';
+  if (normalized.includes('mujer')) return 'Mujer';
+  return 'Unisex';
+};
+
+/**
+ * Detecta la categoría del producto basándose en su nombre
+ */
+const detectCategory = (productName) => {
+  const normalized = normalizeText(productName);
+  if (normalized.includes('camiseta')) return 'Camisetas';
+  if (normalized.includes('buzo')) return 'Buzos';
+  if (normalized.includes('pantaloneta')) return 'Pantalonetas';
+  if (normalized.includes('gorra')) return 'Accesorios';
+  if (normalized.includes('medias')) return 'Accesorios';
+  return 'Ropa Deportiva';
+};
+
 // Generar datos adicionales para estilo Amazon (igual que Fútbol)
 const generateProductData = (product, index) => {
   const rating = (3.5 + Math.random() * 1.5).toFixed(1);
@@ -24,6 +59,11 @@ const generateProductData = (product, index) => {
   const price = product.price || (product.precio ? `$${product.precio}` : '$0.00');
   const title = (product.nombre || product.title || "Producto Jersey Club").replace(/-/g, ' ');
   const image = product.imagen || product.image || "https://storage.googleapis.com/imagenesjerseyclub/default.webp";
+
+  // Detectar género y categoría basándose en el nombre del producto
+  const gender = product.gender || detectGender(title);
+  const category = product.category || detectCategory(title);
+
   // FIX: Priorizar descuento de base de datos
   const dbDiscount = parseFloat(product.descuento || product.discount || 0);
   const hasDbDiscount = dbDiscount > 0;
@@ -45,6 +85,8 @@ const generateProductData = (product, index) => {
     image,
     imagen: image,
     price,
+    gender,
+    category,
     isOnSale,
     rating: parseFloat(rating),
     reviews,
