@@ -30,11 +30,11 @@ export default function ProductQuickviewDialog({ open, onOpenChange, product }) 
   };
 
   return (
-    <div 
+    <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-2 sm:p-4"
       onClick={handleClose}
     >
-      <div 
+      <div
         className="relative bg-white rounded-xl sm:rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
@@ -83,11 +83,11 @@ export default function ProductQuickviewDialog({ open, onOpenChange, product }) 
               {product.isOnSale ? (
                 <div className="space-y-1">
                   <div className="flex items-baseline gap-2 sm:gap-3">
-                    <span className="text-2xl sm:text-3xl font-bold text-gray-900">{product.price}</span>
+                    <span className="text-2xl sm:text-3xl font-bold text-gray-900">${typeof product.price === 'number' ? product.price.toFixed(2) : product.price}</span>
                   </div>
                 </div>
               ) : (
-                <span className="text-2xl sm:text-3xl font-bold text-gray-900">{product.price}</span>
+                <span className="text-2xl sm:text-3xl font-bold text-gray-900">${typeof product.price === 'number' ? product.price.toFixed(2) : product.price}</span>
               )}
               <p className="text-xs sm:text-sm text-green-600 mt-1 sm:mt-2 flex items-center gap-1">
                 <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -119,13 +119,12 @@ export default function ProductQuickviewDialog({ open, onOpenChange, product }) 
                     key={size.name}
                     onClick={() => size.available && setSelectedSize(size.name)}
                     disabled={!size.available}
-                    className={`min-w-[40px] sm:min-w-[48px] h-8 sm:h-10 px-2 sm:px-3 rounded-lg border text-xs sm:text-sm font-medium transition-all ${
-                      !size.available
+                    className={`min-w-[40px] sm:min-w-[48px] h-8 sm:h-10 px-2 sm:px-3 rounded-lg border text-xs sm:text-sm font-medium transition-all ${!size.available
                         ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed line-through"
                         : selectedSize === size.name
-                        ? "bg-gray-900 text-white border-gray-900"
-                        : "bg-white text-gray-900 border-gray-300 hover:border-gray-900"
-                    }`}
+                          ? "bg-gray-900 text-white border-gray-900"
+                          : "bg-white text-gray-900 border-gray-300 hover:border-gray-900"
+                      }`}
                   >
                     {size.name}
                   </button>
