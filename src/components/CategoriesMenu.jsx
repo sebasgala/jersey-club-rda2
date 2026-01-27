@@ -196,25 +196,34 @@ const categoryStructure = {
         link: "/jersey-club-brand",
         items: [
           { name: "Ver toda la colección", filter: null, link: "/jersey-club-brand", alwaysShow: true },
-          { name: "Camisetas", filter: null, link: "/jersey-club-brand?tipo=camisetas", alwaysShow: true },
-          { name: "Accesorios", filter: null, link: "/jersey-club-brand?tipo=accesorios", alwaysShow: true }
+          { name: "Camisetas", filter: "camiseta", link: "/jersey-club-brand?tipo=camisetas", alwaysShow: true },
+          { name: "Buzos", filter: "buzo", link: "/jersey-club-brand?tipo=buzos", alwaysShow: true },
+          { name: "Pantalonetas", filter: "pantaloneta", link: "/jersey-club-brand?tipo=pantalonetas", alwaysShow: true }
         ]
       },
       {
-        title: "Categorías",
-        link: null,
+        title: "Accesorios",
+        link: "/jersey-club-brand?tipo=accesorios",
         items: [
-          { name: "Hombre", filter: null, link: "/jersey-club-brand?categoria=hombre", alwaysShow: true },
-          { name: "Mujer", filter: null, link: "/jersey-club-brand?categoria=mujer", alwaysShow: true },
-          { name: "Niños", filter: null, link: "/jersey-club-brand?categoria=ninos", alwaysShow: true }
+          { name: "Gorra Running", filter: "gorra", link: "/jersey-club-brand?buscar=gorra", alwaysShow: true },
+          { name: "Medias Running", filter: "medias", link: "/jersey-club-brand?buscar=medias", alwaysShow: true }
         ]
       },
       {
-        title: "Novedades",
+        title: "Por Género",
         link: null,
         items: [
-          { name: "Nuevos Lanzamientos", filter: null, link: "/jersey-club-brand?nuevo=true", alwaysShow: true },
-          { name: "Más Vendidos", filter: null, link: "/jersey-club-brand?destacado=true", alwaysShow: true }
+          { name: "Hombre", filter: "hombre", link: "/jersey-club-brand?categoria=hombre", alwaysShow: true },
+          { name: "Mujer", filter: "mujer", link: "/jersey-club-brand?categoria=mujer", alwaysShow: true }
+        ]
+      },
+      {
+        title: "Destacados",
+        link: null,
+        items: [
+          { name: "Camiseta Deportiva Hombre", filter: "camiseta deportiva hombre", link: "/jersey-club-brand?buscar=camiseta+deportiva+hombre", alwaysShow: true },
+          { name: "Camiseta Deportiva Mujer", filter: "camiseta deportiva mujer", link: "/jersey-club-brand?buscar=camiseta+deportiva+mujer", alwaysShow: true },
+          { name: "Buzo Compresión", filter: "buzo compresion", link: "/jersey-club-brand?buscar=buzo+compresion", alwaysShow: true }
         ]
       }
     ]

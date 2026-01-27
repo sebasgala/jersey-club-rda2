@@ -265,7 +265,7 @@ const Sidebar = ({ filters, setFilters, isMobile = false }) => {
 
         {/* Limpiar filtros */}
         <button
-          onClick={() => setFilters({ categories: [], genders: [], priceRange: null, onlyOffers: false })}
+          onClick={() => setFilters({ categories: [], genders: [], priceRange: null, onlyOffers: false, searchTerm: null })}
           className="w-full text-sm text-blue-600 hover:text-[#1a1a2e] hover:underline"
         >
           Limpiar todos los filtros
@@ -288,6 +288,7 @@ const JerseyClubBrand = () => {
     genders: [],
     priceRange: null,
     onlyOffers: false,
+    searchTerm: null,
   });
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
@@ -328,13 +329,20 @@ const JerseyClubBrand = () => {
   useEffect(() => {
     const tipo = searchParams.get('tipo');
     const categoria = searchParams.get('categoria');
+    const buscar = searchParams.get('buscar');
 
     setFilters(prev => {
       const newFilters = { ...prev };
       let hasChanges = false;
 
+      // Filtro por tipo (categoría de producto)
       if (tipo) {
-        const tipoMap = { 'camisetas': 'Camisetas', 'accesorios': 'Accesorios' };
+        const tipoMap = {
+          'camisetas': 'Camisetas',
+          'accesorios': 'Accesorios',
+          'buzos': 'Buzos',
+          'pantalonetas': 'Pantalonetas'
+        };
         const mappedTipo = tipoMap[tipo.toLowerCase()] || tipo;
         if (!prev.categories.includes(mappedTipo)) {
           newFilters.categories = [mappedTipo];
@@ -342,13 +350,20 @@ const JerseyClubBrand = () => {
         }
       }
 
+      // Filtro por género
       if (categoria) {
-        const generoMap = { 'hombre': 'Hombre', 'mujer': 'Mujer', 'ninos': 'Niños' };
+        const generoMap = { 'hombre': 'Hombre', 'mujer': 'Mujer' };
         const mappedGenero = generoMap[categoria.toLowerCase()] || categoria;
         if (!prev.genders.includes(mappedGenero)) {
           newFilters.genders = [mappedGenero];
           hasChanges = true;
         }
+      }
+
+      // Filtro por búsqueda de nombre
+      if (buscar && prev.searchTerm !== buscar) {
+        newFilters.searchTerm = buscar;
+        hasChanges = true;
       }
 
       return hasChanges ? newFilters : prev;
@@ -376,6 +391,23 @@ const JerseyClubBrand = () => {
         const priceStr = typeof p.price === 'string' ? p.price : `$${p.price}`;
         const price = parseFloat(priceStr.replace('$', ''));
         return price >= filters.priceRange.min && price <= filters.priceRange.max;
+      });
+    }
+
+    // Filtro por término de búsqueda (nombre del producto)
+    if (filters.searchTerm) {
+      const searchNormalized = filters.searchTerm
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/\+/g, ' ');
+
+      result = result.filter(p => {
+        const titleNormalized = (p.title || p.nombre || '')
+          .toLowerCase()
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '');
+        return titleNormalized.includes(searchNormalized);
       });
     }
 
@@ -503,7 +535,7 @@ const JerseyClubBrand = () => {
               <div className="text-center py-12">
                 <p className="text-gray-500 text-lg">No se encontraron productos con los filtros seleccionados.</p>
                 <button
-                  onClick={() => setFilters({ categories: [], genders: [], priceRange: null, onlyOffers: false })}
+                  onClick={() => setFilters({ categories: [], genders: [], priceRange: null, onlyOffers: false, searchTerm: null })}
                   className="mt-4 text-[#1a1a2e] hover:underline"
                 >
                   Limpiar filtros
