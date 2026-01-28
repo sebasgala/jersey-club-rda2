@@ -162,7 +162,6 @@ const Sidebar = ({ filters, setFilters, isMobile = false }) => {
       { label: "$50 - $80", min: 50, max: 80 },
       { label: "Más de $80", min: 80, max: Infinity },
     ],
-    demand: [4, 3, 2, 1],
   };
 
   return (
@@ -211,26 +210,6 @@ const Sidebar = ({ filters, setFilters, isMobile = false }) => {
           </div>
         </div>
 
-        {/* Filtro por demandadas */}
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
-          <h3 className="font-bold text-gray-900 mb-3">Valoración</h3>
-          <div className="space-y-2">
-            {filterOptions.demand.map((rating) => (
-              <label key={rating} className="flex items-center gap-2 cursor-pointer group">
-                <input
-                  type="radio"
-                  name="demand"
-                  className="w-4 h-4 border-gray-300 text-orange-500 focus:ring-orange-500"
-                  checked={filters.minDemand === rating}
-                  onChange={() => setFilters({ ...filters, minDemand: rating })}
-                />
-                <div className="flex items-center gap-1">
-                  <span className="text-sm text-gray-700">{rating} estrellas y más</span>
-                </div>
-              </label>
-            ))}
-          </div>
-        </div>
 
         {/* Limpiar filtros */}
         <button

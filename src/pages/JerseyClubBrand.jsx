@@ -206,42 +206,17 @@ const ProductCard = ({ product }) => {
 // Filtros laterales - Adaptados para Jersey Club Brand
 const Sidebar = ({ filters, setFilters, isMobile = false }) => {
   const filterOptions = {
-    categories: ["Buzos", "Camisetas", "Pantalonetas", "Accesorios"],
-    genders: ["Hombre", "Mujer", "Unisex"],
+    genders: ["Hombre", "Mujer"],
     priceRanges: [
       { label: "Hasta $25", min: 0, max: 25 },
       { label: "$25 - $35", min: 25, max: 35 },
       { label: "$35 - $50", min: 35, max: 50 },
-      { label: "Más de $50", min: 50, max: Infinity },
     ],
   };
 
   return (
     <aside className={isMobile ? "w-full" : "w-64 flex-shrink-0 hidden lg:block"}>
       <div className="sticky top-4 space-y-6">
-        {/* Filtro por categoría */}
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
-          <h3 className="font-bold text-gray-900 mb-3">Categoría</h3>
-          <div className="space-y-2">
-            {filterOptions.categories.map((category) => (
-              <label key={category} className="flex items-center gap-2 cursor-pointer group">
-                <input
-                  type="checkbox"
-                  className="w-4 h-4 rounded border-gray-300 text-[#1a1a2e] focus:ring-[#1a1a2e]"
-                  checked={filters.categories.includes(category)}
-                  onChange={(e) => {
-                    if (e.target.checked) {
-                      setFilters({ ...filters, categories: [...filters.categories, category] });
-                    } else {
-                      setFilters({ ...filters, categories: filters.categories.filter(c => c !== category) });
-                    }
-                  }}
-                />
-                <span className="text-sm text-gray-700 group-hover:text-[#1a1a2e]">{category}</span>
-              </label>
-            ))}
-          </div>
-        </div>
 
         {/* Filtro por género */}
         <div className="bg-white border border-gray-200 rounded-lg p-4">
