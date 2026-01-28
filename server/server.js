@@ -232,12 +232,24 @@ app.delete('/api/productos/:id', productosController.eliminarProducto);
 // POST /api/ordenes - Crear nueva orden sincronizada con DB - PROTEGIDO
 app.post('/api/ordenes', requireAuth, async (req, res) => {
   console.log('📥 Recibida petición POST /api/ordenes (Prisma)');
+
   try {
     const { shippingData, paymentMethod, items, total, userId, estado, tipo, notas } = req.body;
+
+    // Log para diagnóstico
+    console.log('Items recibidos:', JSON.stringify(items, null, 2));
+    console.log('Total recibido:', total);
 
     if (!items || items.length === 0) {
       return res.status(400).json({ success: false, message: 'Datos de orden incompletos' });
     }
+
+    // Función helper para parsear precio
+    const parsePrice = (priceStr) => {
+      if (typeof priceStr === 'number') return priceStr;
+      if (!priceStr) return 0;
+      return parseFloat(String(priceStr).replace(/[^0-9.]/g, '')) || 0;
+    };
 
     // 1. Resolver IDs de usuario y cliente
     let idUsuario = 'ADM001'; // Default
@@ -270,7 +282,13 @@ app.post('/api/ordenes', requireAuth, async (req, res) => {
       // 1. Agrupar cantidades por producto (para actualizar stock correctamente)
       const stockUpdates = {};
       for (const item of items) {
-        const productId = item.id.length <= 6 ? item.id : 'P00001';
+        // Validar que item.id existe
+        if (!item.id) {
+          console.warn('⚠️ Item sin ID encontrado:', item);
+          continue;
+        }
+
+        const productId = String(item.id).length <= 6 ? String(item.id) : 'P00001';
         const cantidad = item.cantidad || item.quantity || 1;
 
         if (!stockUpdates[productId]) {
@@ -282,11 +300,17 @@ app.post('/api/ordenes', requireAuth, async (req, res) => {
       // 2. Crear Detalles de pedido
       let detalleCount = 0;
       for (const item of items) {
+        // Validar que item.id existe
+        if (!item.id) {
+          console.warn('⚠️ Saltando item sin ID:', item);
+          continue;
+        }
+
         detalleCount++;
         const detId = `D${String(Date.now() + detalleCount).slice(-5)}`; // Generar ID único temporal
-        const productId = item.id.length <= 6 ? item.id : 'P00001';
+        const productId = String(item.id).length <= 6 ? String(item.id) : 'P00001';
         const cantidad = item.cantidad || item.quantity || 1;
-        const precioUnitario = parseFloat(item.precio || item.price || 0);
+        const precioUnitario = parsePrice(item.precio || item.price);
 
         await tx.pedido_detalle.create({
           data: {
@@ -343,7 +367,13 @@ app.post('/api/ordenes', requireAuth, async (req, res) => {
 
   } catch (error) {
     console.error('❌ Error creating order:', error);
-    res.status(500).json({ success: false, message: 'Error interno al crear la orden en DB' });
+    console.error('Error stack:', error.stack);
+    console.error('Error message:', error.message);
+    res.status(500).json({
+      success: false,
+      message: 'Error interno al crear la orden en DB',
+      error: error.message
+    });
   }
 });
 
