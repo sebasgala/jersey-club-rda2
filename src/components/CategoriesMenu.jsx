@@ -199,15 +199,6 @@ const categoryStructure = {
         ]
       },
       {
-        title: "Ropa Deportiva",
-        link: null,
-        items: [
-          { name: "Camisetas", filter: "camiseta", link: "/jersey-club-brand?tipo=camisetas", alwaysShow: true },
-          { name: "Buzos de Compresión", filter: "buzo", link: "/jersey-club-brand?tipo=buzos", alwaysShow: true },
-          { name: "Pantalonetas", filter: "pantaloneta", link: "/jersey-club-brand?tipo=pantalonetas", alwaysShow: true }
-        ]
-      },
-      {
         title: "Para Él",
         link: "/jersey-club-brand?categoria=hombre",
         items: [
