@@ -78,7 +78,9 @@ export default function Invoice() {
                 <span className="font-medium">{new Date().toLocaleDateString()}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">{order.items?.length || 0} productos</span>
+                <span className="text-gray-600">
+                  {order.items?.reduce((total, item) => total + (item.quantity || item.cantidad || 1), 0) || 0} unidades
+                </span>
                 <span className="font-medium">${order.total?.subtotal}</span>
               </div>
               <div className="flex justify-between">
