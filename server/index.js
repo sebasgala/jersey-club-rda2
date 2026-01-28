@@ -1,9 +1,6 @@
 import 'dotenv/config';
-import app from './app.js'; // Cambiar require por import
+import app from './server.js'; // Importar el servidor real con todas las rutas
 
-const PORT = process.env.PORT || 5002;
+// El servidor ya se inicia en server.js cuando NODE_ENV != 'production'
+// Este archivo solo es necesario para Vercel o cuando se ejecuta directamente
 
-// Iniciar el servidor
-app.listen(PORT, () => {
-  console.log(`Servidor corriendo en http://localhost:${PORT}`);
-});

@@ -1,78 +1,22 @@
-// Manifest de productos Jersey Club Brand
-// Generado desde imágenes en /public/assets/images/ que contienen "jersey club" en el nombre
-// Para actualizar: busca imágenes nuevas y añádelas aquí
+/**
+ * Productos Jersey Club Brand
+ * 
+ * ESTE ARCHIVO ESTÁ VACÍO INTENCIONALMENTE
+ * 
+ * Los productos de Jersey Club Brand ahora se cargan exclusivamente desde 
+ * la base de datos Neon a través de la API del backend.
+ * 
+ * Productos válidos en la base de datos (categoría JCB1):
+ * - P00077: Buzo Compresion Hombre Jersey Club
+ * - P00078: Camiseta Deportiva Hombre Jersey Club
+ * - P00079: Camiseta Deportiva Mujer Jersey Club
+ * - P00082: Pantaloneta Deportiva Hombre Jersey Club
+ * - P00083: Pantaloneta Running Hombre Jersey Club
+ * 
+ * NO AGREGAR PRODUCTOS LOCALES AQUÍ.
+ * Use el panel de administración para gestionar productos.
+ */
 
-const jerseyClubProducts = [
-  {
-    id: "jcb-1",
-    title: "Buzo Compresión Hombre Jersey Club",
-    image: "https://storage.googleapis.com/imagenesjerseyclub/buzo-compresion-hombre-jersey-club.webp",
-    price: "$35.00",
-    isOnSale: false,
-    category: "Buzos",
-    gender: "Hombre",
-    type: "Compresión"
-  },
-  {
-    id: "jcb-2",
-    title: "Camiseta Deportiva Hombre Jersey Club",
-    image: "https://storage.googleapis.com/imagenesjerseyclub/camiseta-deportiva-hombre-jersey-club.webp",
-    price: "$28.00",
-    isOnSale: true,
-    category: "Camisetas",
-    gender: "Hombre",
-    type: "Deportiva"
-  },
-  {
-    id: "jcb-3",
-    title: "Camiseta Deportiva Mujer Jersey Club",
-    image: "https://storage.googleapis.com/imagenesjerseyclub/camiseta-deportiva-mujer-jersey-club.webp",
-    price: "$28.00",
-    isOnSale: true,
-    category: "Camisetas",
-    gender: "Mujer",
-    type: "Deportiva"
-  },
-  {
-    id: "jcb-4",
-    title: "Gorra Running Jersey Club",
-    image: "https://storage.googleapis.com/imagenesjerseyclub/gorra-running-jersey-club.webp",
-    price: "$18.00",
-    isOnSale: false,
-    category: "Accesorios",
-    gender: "Unisex",
-    type: "Running"
-  },
-  {
-    id: "jcb-5",
-    title: "Medias Running Jersey Club",
-    image: "https://storage.googleapis.com/imagenesjerseyclub/medias-running-jersey-club.webp",
-    price: "$12.00",
-    isOnSale: true,
-    category: "Accesorios",
-    gender: "Unisex",
-    type: "Running"
-  },
-  {
-    id: "jcb-6",
-    title: "Pantaloneta Deportiva Hombre Jersey Club",
-    image: "https://storage.googleapis.com/imagenesjerseyclub/pantaloneta-deportiva-hombre-jersey-club.webp",
-    price: "$22.00",
-    isOnSale: false,
-    category: "Pantalonetas",
-    gender: "Hombre",
-    type: "Deportiva"
-  },
-  {
-    id: "jcb-7",
-    title: "Pantaloneta Running Hombre Jersey Club",
-    image: "https://storage.googleapis.com/imagenesjerseyclub/pantaloneta-running-hombre-jersey-club.webp",
-    price: "$25.00",
-    isOnSale: true,
-    category: "Pantalonetas",
-    gender: "Hombre",
-    type: "Running"
-  }
-];
+const jerseyClubProducts = [];
 
 export default jerseyClubProducts;
