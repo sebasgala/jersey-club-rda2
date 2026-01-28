@@ -248,7 +248,7 @@ const ProductCard = ({ product }) => {
 
 const Sidebar = ({ filters, setFilters, isMobile = false }) => {
   const filterOptions = {
-    teams: ["Real Madrid", "Barcelona", "Manchester City", "Arsenal", "Liverpool", "Bayern Munich", "PSG", "Boca Juniors", "River Plate", "Emelec", "Barcelona SC", "LDU"],
+    teams: ["Real Madrid", "Barcelona", "Manchester City", "Arsenal", "Liverpool", "Bayern Munich", "PSG", "Emelec", "Barcelona SC"],
     priceRanges: [
       { label: "Hasta $30", min: 0, max: 30 },
       { label: "$30 - $50", min: 30, max: 50 },
