@@ -39,6 +39,33 @@ const validatePhone = (phone) => {
   return '';
 };
 
+// Validación de ciudad: solo letras, espacios y acentos
+const validateCity = (city) => {
+  if (!city || !city.trim()) return 'La ciudad es requerida';
+  const cityRegex = /^[a-záéíóúñA-ZÁÉÍÓÚÑ\s]+$/;
+  if (!cityRegex.test(city)) return 'Ciudad inválida (solo letras)';
+  if (city.trim().length < 3) return 'Ciudad demasiado corta';
+  return '';
+};
+
+// Validación de dirección: letras, números, espacios y caracteres comunes
+const validateAddress = (address) => {
+  if (!address || !address.trim()) return 'La dirección es requerida';
+  const addressRegex = /^[a-záéíóúñA-ZÁÉÍÓÚÑ0-9\s.,#\-]+$/;
+  if (!addressRegex.test(address)) return 'Dirección inválida';
+  if (address.trim().length < 5) return 'Dirección demasiado corta';
+  return '';
+};
+
+// Validación de código postal: máximo 6 números, sin letras
+const validatePostalCode = (postalCode) => {
+  if (!postalCode) return 'Código postal requerido';
+  if (!/^\d+$/.test(postalCode)) return 'Solo números permitidos';
+  if (postalCode.length > 6) return 'Máximo 6 dígitos';
+  if (postalCode.length < 4) return 'Mínimo 4 dígitos';
+  return '';
+};
+
 const validateCardNumber = (cardNumber) => {
   if (!cardNumber) return 'Número de tarjeta requerido';
   const cleaned = cardNumber.replace(/\s/g, '');
@@ -59,9 +86,21 @@ const validateExpiry = (expiry) => {
   return '';
 };
 
+// Validación de nombre en tarjeta: solo letras y espacios, sin números
+const validateCardName = (cardName) => {
+  if (!cardName || !cardName.trim()) return 'Nombre en tarjeta requerido';
+  const nameRegex = /^[a-záéíóúñA-ZÁÉÍÓÚÑ\s]+$/;
+  if (!nameRegex.test(cardName)) return 'Solo letras y espacios permitidos';
+  const words = cardName.trim().split(/\s+/);
+  if (words.length < 2) return 'Ingrese nombre y apellido';
+  if (cardName.trim().length < 5) return 'Nombre demasiado corto';
+  return '';
+};
+
+// Validación de CVC: exactamente 3 números, sin letras
 const validateCVC = (cvc) => {
   if (!cvc) return 'CVC requerido';
-  if (!/^\d{3,4}$/.test(cvc)) return '3-4 dígitos';
+  if (!/^\d{3}$/.test(cvc)) return 'Debe tener exactamente 3 dígitos';
   return '';
 };
 
@@ -118,6 +157,27 @@ export default function Payment() {
     let formattedValue = value;
 
     // Formateo especial para ciertos campos
+
+    // Ciudad: solo letras, espacios y acentos
+    if (name === 'city') {
+      formattedValue = value.replace(/[^a-záéíóúñA-ZÁÉÍÓÚÑ\s]/g, '');
+    }
+
+    // Dirección: letras, números, espacios y caracteres comunes
+    if (name === 'address') {
+      formattedValue = value.replace(/[^a-záéíóúñA-ZÁÉÍÓÚÑ0-9\s.,#\-]/g, '');
+    }
+
+    // Código postal: solo números, máximo 6
+    if (name === 'postalCode') {
+      formattedValue = value.replace(/\D/g, '').slice(0, 6);
+    }
+
+    // Nombre en tarjeta: solo letras y espacios (sin números)
+    if (name === 'cardName') {
+      formattedValue = value.replace(/[^a-záéíóúñA-ZÁÉÍÓÚÑ\s]/g, '').toUpperCase();
+    }
+
     if (name === 'cardNumber') {
       // Remove any non‑digit characters, then format as groups of 4 digits
       const digitsOnly = value.replace(/\D/g, '');
@@ -132,8 +192,9 @@ export default function Payment() {
       }
     }
 
+    // CVC: solo números, exactamente 3
     if (name === 'cvc') {
-      formattedValue = value.replace(/\D/g, '').slice(0, 4);
+      formattedValue = value.replace(/\D/g, '').slice(0, 3);
     }
 
     if (name === 'phone') {
@@ -167,15 +228,19 @@ export default function Payment() {
         error = validatePhone(value);
         break;
       case 'country':
+        error = validateRequired(value, 'País');
+        break;
       case 'city':
+        error = validateCity(value);
+        break;
       case 'address':
-        error = validateRequired(value, name === 'country' ? 'País' : name === 'city' ? 'Ciudad' : 'Dirección');
+        error = validateAddress(value);
         break;
       case 'postalCode':
-        error = validateRequired(value, 'Código postal');
+        error = validatePostalCode(value);
         break;
       case 'cardName':
-        error = validateRequired(value, 'Nombre en tarjeta');
+        error = validateCardName(value);
         break;
       case 'cardNumber':
         error = validateCardNumber(value);
