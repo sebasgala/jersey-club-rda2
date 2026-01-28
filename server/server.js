@@ -267,27 +267,44 @@ app.post('/api/ordenes', requireAuth, async (req, res) => {
         }
       });
 
-      // Crear Detalles y actualizar stock
+      // 1. Agrupar cantidades por producto (para actualizar stock correctamente)
+      const stockUpdates = {};
+      for (const item of items) {
+        const productId = item.id.length <= 6 ? item.id : 'P00001';
+        const cantidad = item.cantidad || item.quantity || 1;
+
+        if (!stockUpdates[productId]) {
+          stockUpdates[productId] = 0;
+        }
+        stockUpdates[productId] += cantidad;
+      }
+
+      // 2. Crear Detalles de pedido
       let detalleCount = 0;
       for (const item of items) {
         detalleCount++;
         const detId = `D${String(Date.now() + detalleCount).slice(-5)}`; // Generar ID único temporal
+        const productId = item.id.length <= 6 ? item.id : 'P00001';
+        const cantidad = item.cantidad || item.quantity || 1;
+        const precioUnitario = parseFloat(item.precio || item.price || 0);
 
         await tx.pedido_detalle.create({
           data: {
             id_detalle: detId,
             id_pedido: pedId,
-            id_producto: item.id.length <= 6 ? item.id : 'P00001', // Fallback si el ID es largo
-            det_cantidad: item.cantidad || 1,
-            det_preciounitario: parseFloat(item.precio || 0),
-            det_subtotal: parseFloat(item.precio || 0) * (item.cantidad || 1)
+            id_producto: productId,
+            det_cantidad: cantidad,
+            det_preciounitario: precioUnitario,
+            det_subtotal: precioUnitario * cantidad
           }
         });
+      }
 
-        // Actualizar stock
+      // 3. Actualizar stock una sola vez por producto (suma acumulada)
+      for (const [productId, totalQuantity] of Object.entries(stockUpdates)) {
         await tx.producto.update({
-          where: { id_producto: item.id.length <= 6 ? item.id : 'P00001' },
-          data: { prd_stock: { decrement: item.cantidad || 1 } }
+          where: { id_producto: productId },
+          data: { prd_stock: { decrement: totalQuantity } }
         });
       }
 
