@@ -208,29 +208,20 @@ const categoryStructure = {
         ]
       },
       {
-        title: "Accesorios",
-        link: "/jersey-club-brand?tipo=accesorios",
-        items: [
-          { name: "Gorra Running", filter: "gorra", link: "/jersey-club-brand?buscar=gorra", alwaysShow: true },
-          { name: "Medias Running", filter: "medias", link: "/jersey-club-brand?buscar=medias", alwaysShow: true }
-        ]
-      },
-      {
         title: "Para Él",
         link: "/jersey-club-brand?categoria=hombre",
         items: [
           { name: "Camiseta Deportiva Hombre", filter: "camiseta deportiva hombre", link: "/jersey-club-brand?buscar=camiseta+deportiva+hombre", alwaysShow: true },
           { name: "Buzo Compresión Hombre", filter: "buzo compresion hombre", link: "/jersey-club-brand?buscar=buzo+compresion+hombre", alwaysShow: true },
-          { name: "Pantaloneta Deportiva Hombre", filter: "pantaloneta hombre", link: "/jersey-club-brand?buscar=pantaloneta+hombre", alwaysShow: true }
+          { name: "Pantaloneta Deportiva Hombre", filter: "pantaloneta deportiva hombre", link: "/jersey-club-brand?buscar=pantaloneta+deportiva+hombre", alwaysShow: true },
+          { name: "Pantaloneta Running Hombre", filter: "pantaloneta running hombre", link: "/jersey-club-brand?buscar=pantaloneta+running+hombre", alwaysShow: true }
         ]
       },
       {
         title: "Para Ella",
         link: "/jersey-club-brand?categoria=mujer",
         items: [
-          { name: "Camiseta Deportiva Mujer", filter: "camiseta deportiva mujer", link: "/jersey-club-brand?buscar=camiseta+deportiva+mujer", alwaysShow: true },
-          { name: "Buzo Compresión Mujer", filter: "buzo compresion mujer", link: "/jersey-club-brand?buscar=buzo+compresion+mujer", alwaysShow: true },
-          { name: "Pantaloneta Running Mujer", filter: "pantaloneta mujer", link: "/jersey-club-brand?buscar=pantaloneta+mujer", alwaysShow: true }
+          { name: "Camiseta Deportiva Mujer", filter: "camiseta deportiva mujer", link: "/jersey-club-brand?buscar=camiseta+deportiva+mujer", alwaysShow: true }
         ]
       }
     ]
