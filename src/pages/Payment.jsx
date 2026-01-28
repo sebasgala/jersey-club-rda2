@@ -29,6 +29,11 @@ const ECUADOR_CITIES = [
   "Huaquillas", "Manta", "Salinas", "Otavalo"
 ].sort();
 
+const validateRequired = (value, fieldName) => {
+  if (!value || !value.trim()) return `${fieldName} es requerido`;
+  return '';
+};
+
 const validateFullName = (name) => {
   if (!name || !name.trim()) return 'El nombre es requerido';
   const nameRegex = /^[a-záéíóúñA-ZÁÉÍÓÚÑ\s]+$/;
