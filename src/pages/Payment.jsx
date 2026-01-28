@@ -20,8 +20,21 @@ import { createOrder } from '../controllers';
 
 // ==================== VALIDACIONES ====================
 
-const validateRequired = (value, fieldName) => {
-  if (!value || !value.trim()) return `${fieldName} es requerido`;
+const ECUADOR_CITIES = [
+  "Quito", "Guayaquil", "Cuenca", "Santo Domingo", "Machala",
+  "Durán", "Manta", "Portoviejo", "Loja", "Ambato",
+  "Esmeraldas", "Quevedo", "Riobamba", "Milagro", "Ibarra",
+  "La Libertad", "Babahoyo", "Sangolquí", "Daule", "Latacunga",
+  "Tulcán", "Chone", "Pasaje", "Santa Rosa", "Nueva Loja",
+  "Huaquillas", "Manta", "Salinas", "Otavalo"
+].sort();
+
+const validateFullName = (name) => {
+  if (!name || !name.trim()) return 'El nombre es requerido';
+  const nameRegex = /^[a-záéíóúñA-ZÁÉÍÓÚÑ\s]+$/;
+  if (!nameRegex.test(name)) return 'Solo letras permitidas';
+  const words = name.trim().split(/\s+/);
+  if (words.length < 2) return 'Ingrese nombre y apellido';
   return '';
 };
 
@@ -35,16 +48,14 @@ const validateEmail = (email) => {
 const validatePhone = (phone) => {
   if (!phone) return 'El teléfono es requerido';
   const cleaned = phone.replace(/\D/g, '');
-  if (cleaned.length < 9) return 'El teléfono debe tener al menos 9 dígitos';
+  if (cleaned.length !== 10) return 'El teléfono debe tener exactamente 10 dígitos';
+  if (!cleaned.startsWith('0')) return 'Debe empezar con 0 (ej. 09...)';
   return '';
 };
 
 // Validación de ciudad: solo letras, espacios y acentos
 const validateCity = (city) => {
-  if (!city || !city.trim()) return 'La ciudad es requerida';
-  const cityRegex = /^[a-záéíóúñA-ZÁÉÍÓÚÑ\s]+$/;
-  if (!cityRegex.test(city)) return 'Ciudad inválida (solo letras)';
-  if (city.trim().length < 3) return 'Ciudad demasiado corta';
+  if (!city || !city.trim()) return 'Seleccione una ciudad';
   return '';
 };
 
@@ -158,8 +169,8 @@ export default function Payment() {
 
     // Formateo especial para ciertos campos
 
-    // Ciudad: solo letras, espacios y acentos
-    if (name === 'city') {
+    // Nombre completo: solo letras y espacios
+    if (name === 'fullName') {
       formattedValue = value.replace(/[^a-záéíóúñA-ZÁÉÍÓÚÑ\s]/g, '');
     }
 
@@ -198,8 +209,10 @@ export default function Payment() {
     }
 
     if (name === 'phone') {
-      formattedValue = value.replace(/[^\d+\-\s()]/g, '');
+      formattedValue = value.replace(/\D/g, '').slice(0, 10);
     }
+
+    // Ciudad: ya es un select, no necesita filtrado manual aquí
 
     setFormData(prev => ({ ...prev, [name]: formattedValue }));
 
@@ -219,7 +232,7 @@ export default function Payment() {
 
     switch (name) {
       case 'fullName':
-        error = validateRequired(value, 'Nombre completo');
+        error = validateFullName(value);
         break;
       case 'email':
         error = validateEmail(value);
@@ -380,7 +393,7 @@ export default function Payment() {
                       ? 'border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-200'
                       : 'border-gray-300 focus:border-[#e77600] focus:ring-2 focus:ring-[#f3d078]'
                       } ${isProcessing ? 'bg-gray-100' : 'bg-white'}`}
-                    placeholder="Juan Pérez"
+                    placeholder="Escriba su nombre y apellido"
                   />
                   {errors.fullName && touched.fullName && (
                     <p className="mt-1 text-xs text-red-600">{errors.fullName}</p>
@@ -426,7 +439,7 @@ export default function Payment() {
                       ? 'border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-200'
                       : 'border-gray-300 focus:border-[#e77600] focus:ring-2 focus:ring-[#f3d078]'
                       } ${isProcessing ? 'bg-gray-100' : 'bg-white'}`}
-                    placeholder="+593 99 123 4567"
+                    placeholder="0991234567 (10 dígitos)"
                   />
                   {errors.phone && touched.phone && (
                     <p className="mt-1 text-xs text-red-600">{errors.phone}</p>
@@ -467,8 +480,7 @@ export default function Payment() {
                   <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-1">
                     Ciudad *
                   </label>
-                  <input
-                    type="text"
+                  <select
                     id="city"
                     name="city"
                     value={formData.city}
@@ -476,11 +488,15 @@ export default function Payment() {
                     onBlur={handleBlur}
                     disabled={isProcessing}
                     className={`w-full px-3 py-2 border rounded-lg text-sm outline-none transition-all ${errors.city && touched.city
-                      ? 'border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-200'
-                      : 'border-gray-300 focus:border-[#e77600] focus:ring-2 focus:ring-[#f3d078]'
+                      ? 'border-red-500 focus:border-red-500'
+                      : 'border-gray-300 focus:border-[#e77600]'
                       } ${isProcessing ? 'bg-gray-100' : 'bg-white'}`}
-                    placeholder="Quito"
-                  />
+                  >
+                    <option value="">Seleccione una ciudad</option>
+                    {ECUADOR_CITIES.map(city => (
+                      <option key={city} value={city}>{city}</option>
+                    ))}
+                  </select>
                   {errors.city && touched.city && (
                     <p className="mt-1 text-xs text-red-600">{errors.city}</p>
                   )}
