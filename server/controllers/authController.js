@@ -118,7 +118,11 @@ const login = async (req, res) => {
 
   try {
     const user = await prisma.usuario.findUnique({
-      where: { usu_email: email }
+      where: { usu_email: email },
+      include: {
+        cliente: true,
+        empleado: true
+      }
     });
 
     if (!user) {
@@ -137,11 +141,24 @@ const login = async (req, res) => {
 
     await logAudit({ usuarioId: user.id_usuario, accion: 'LOGIN', tabla: 'usuario', claveRegistro: user.id_usuario, descripcion: `Sesión iniciada: ${email}` });
 
+    // Construir nombre completo
+    const fullName = user.cliente
+      ? `${user.cliente.cli_nombre} ${user.cliente.cli_apellido}`.replace(' N/A', '').trim()
+      : (user.empleado
+        ? `${user.empleado.emp_nombre} ${user.empleado.emp_apellido}`.replace(' N/A', '').trim()
+        : user.usu_email.split('@')[0]);
+
     res.json({
       success: true,
       message: 'Inicio de sesión exitoso',
       data: {
-        user: { id: user.id_usuario, email: user.usu_email, rol: user.usu_role },
+        user: {
+          id: user.id_usuario,
+          email: user.usu_email,
+          rol: user.usu_role,
+          name: fullName,
+          detalle: user.cliente || user.empleado
+        },
         token,
       },
     });

@@ -135,7 +135,7 @@ export default function Auth() {
                   {user?.name?.charAt(0) || user?.nombre?.charAt(0) || user?.email?.charAt(0)}
                 </span>
               </div>
-              <h1 className="text-xl font-bold text-gray-900 mb-2">¡Hola, {user?.name || user?.nombre}!</h1>
+              <h1 className="text-xl font-bold text-gray-900 mb-2">¡Bienvenid@, {user?.name || user?.nombre || user?.email?.split('@')[0]}!</h1>
               <p className="text-sm text-gray-500 mb-6">Has iniciado sesión como <br /><strong>{user?.email}</strong></p>
               <div className="space-y-3">
                 <button
