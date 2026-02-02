@@ -272,7 +272,7 @@ function Navbar({ onOpenCategories }) {
             <div className="navbar-user-section">
               {isAuthenticated && (
                 <div className="user-greeting">
-                  <span className="greeting-text">Hola,</span>
+                  <span className="greeting-text">Bienvenid@,</span>
                   <span className="user-name-label">{user?.name || user?.nombre || user?.email?.split('@')[0]}</span>
                 </div>
               )}
