@@ -45,9 +45,9 @@ const validateEmail = (email) => {
  */
 const validatePassword = (password) => {
   if (!password) return 'La contraseña es requerida';
-  if (password.length < 8) return 'La contraseña debe tener al menos 8 caracteres';
-  if (!/[A-Z]/.test(password)) return 'La contraseña debe incluir al menos una letra mayúscula';
-  if (!/[0-9]/.test(password)) return 'La contraseña debe incluir al menos un número';
+  if (password.length < 8) return 'Debe tener al menos 8 caracteres';
+  if (!/[A-Z]/.test(password)) return 'Debe incluir una letra mayúscula (A-Z)';
+  if (!/[0-9]/.test(password)) return 'Debe incluir al menos un número (0-9)';
   return '';
 };
 
@@ -265,10 +265,8 @@ export default function Register() {
 
       setSubmitSuccess(true);
 
-      // Redirigir después de 2 segundos
-      setTimeout(() => {
-        navigate('/auth');
-      }, 2000);
+      // Redirigir inmediatamente
+      navigate('/auth');
 
     } catch (error) {
       setSubmitError(error.message || 'Error al crear la cuenta. Intenta de nuevo.');
@@ -340,6 +338,9 @@ export default function Register() {
                       : 'border-gray-400 focus:border-[#e77600] focus:ring-2 focus:ring-[#f3d078]'
                       } ${isLoading || submitSuccess ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'}`}
                   />
+                  {errors.fullName && touched.fullName && (
+                    <p className="mt-0.5 text-[9px] text-red-600 leading-none">{errors.fullName}</p>
+                  )}
                 </div>
 
                 {/* Email */}
@@ -359,6 +360,9 @@ export default function Register() {
                       : 'border-gray-400 focus:border-[#e77600] focus:ring-2 focus:ring-[#f3d078]'
                       } ${isLoading || submitSuccess ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'}`}
                   />
+                  {errors.email && touched.email && (
+                    <p className="mt-0.5 text-[9px] text-red-600 leading-none">{errors.email}</p>
+                  )}
                 </div>
 
                 {/* Password Fields */}
@@ -398,6 +402,9 @@ export default function Register() {
                         )}
                       </button>
                     </div>
+                    {errors.password && touched.password && (
+                      <p className="mt-0.5 text-[9px] text-red-600 leading-none">{errors.password}</p>
+                    )}
                   </div>
                   <div>
                     <label htmlFor="confirmPassword" className="block text-xs font-bold text-[#0F1111] mb-1">Confirmar</label>
@@ -434,6 +441,9 @@ export default function Register() {
                         )}
                       </button>
                     </div>
+                    {errors.confirmPassword && touched.confirmPassword && (
+                      <p className="mt-0.5 text-[9px] text-red-600 leading-none">{errors.confirmPassword}</p>
+                    )}
                   </div>
                 </div>
 
